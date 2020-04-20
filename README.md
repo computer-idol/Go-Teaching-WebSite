@@ -1,6 +1,4 @@
-# demo
-
-> A Vue.js project
+# 围棋教学网站前端
 
 ## Build Setup
 
@@ -27,4 +25,5 @@ npm run e2e
 npm test
 ```
 
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+## 说明
+教学网站共分为四个部分：对弈、教学、练习和测评
