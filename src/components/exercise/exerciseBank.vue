@@ -64,32 +64,27 @@
         </div>
       </div>
     </div>
-    <alert
-      v-if="dialog.if_show_tip"
-      :tip="dialog.tip"
-      :btn1_text="dialog.btn1_text"
-      :btn2_text="dialog.btn2_text"
-      @btn1_click="close_tip"
-      @btn2_click="close_tip"
-    ></alert>
+    <Alert v-if="dialog.if_show_tip" :tip="dialog.tip" :btn1_text="dialog.btn1_text" :btn2_text="dialog.btn2_text"
+      @btn1_click="close_tip" @btn2_click="close_tip"></Alert>
   </div>
 </template>
 
 <script>
-import axios from "axios";
-import alert from "../tools/Alert";
+import Alert from "../tools/Alert";
 import UserLink from "../../components/tools/UserLink"
 import Back from "../../components/tools/Back"
+import ExerciseRequest from "../../api/exercise"
+
 export default {
   name: "detailexercise",
   components: {
-    alert,Back,UserLink
+    Alert,Back,UserLink
   },
   created() {
     document.title = "练习题库";
-    var usermsg = sessionStorage.getItem("user");
-    if (usermsg != null) {
-      this.user = JSON.parse(usermsg);
+    const user = sessionStorage.getItem("user");
+    if (user!= null) {
+      this.user = JSON.parse(user);
     }
   },
   data() {
@@ -111,7 +106,7 @@ export default {
       linkList: [
         {text:"首页",href:"/index",id:"link1"},
         {text:"教程",href:"/study",id:"link2"},
-        {text:"棋谱欣赏",href:"/exercise",id:"link3"},
+        {text:"棋谱欣赏",href:"/play/manualLibrary",id:"link3"},
         {text:"对弈大厅",href:"/play",id:"link4"}
       ]
     };
@@ -147,24 +142,17 @@ export default {
       let params = new URLSearchParams();
       params.append("type", "'" + that.type + "'");
       params.append("level", "'" + that.level + "'");
-      axios({
-        method: "post",
-        url: "http://localhost:8081/exercise/getSubExerciseType",
-        data: params,
-      })
-        .then((res) => {
-          console.log(res.data);
-          let exercisetypeList = res.data;
-          if (exercisetypeList.length == 0) {
-            that.open_tip("暂时没有这个级别题目");
-          } else {
-            that.if_set_level = true;
-            that.exerciseTypes = exercisetypeList;
-          }
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      ExerciseRequest.getExerciseTypeList(params).then((res) => {
+        let exercisetypeList = res.data;
+        if (exercisetypeList.length == 0) {
+          that.open_tip("暂时没有这个级别题目");
+        } else {
+          that.if_set_level = true;
+          that.exerciseTypes = exercisetypeList;
+        }
+      }).catch(function (e) {
+        console.log(e);
+      });
     },
     goto(index) {
       let exercisetype = this.exerciseTypes[index];

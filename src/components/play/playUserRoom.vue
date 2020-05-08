@@ -1,6 +1,6 @@
 <template>
   <div class="playRoom">
-    <Back :href="'/play'"/>
+    <Back :href="'/play'" class="cursor_pointer"/>
     <Board :game="game" ref="goBoard" @init="init_board" @play="played" @compute="compute_result" class="board"></Board>
     <img class="begin-img" :src="begin_img" v-if="game.me_player != 3 && if_show_begin"/>
     <div class="playRoom-right">
@@ -38,7 +38,7 @@
           <button class="operate_btn" v-if="if_show_compute_result&&game_message.if_begin" @click="close_compute">取消判断</button>
           <button class="operate_btn" v-if="!game.if_show_sequence&&game_message.if_begin&&!game.if_try" @click="showSequence" >显示手数</button>
           <button class="operate_btn" v-if="game.if_show_sequence&&game_message.if_begin&&!game.if_try" @click="cancel_showSequence">取消手数</button>
-          <button class="operate_btn" v-if="game.me_player!=3&&game_message.if_begin">数子申请</button>
+          <button class="operate_btn" v-if="game.me_player!=3&&game_message.if_begin" @click="conduct">数子申请</button>
         </div>
       </div>
       <div class="choose">
@@ -55,13 +55,12 @@
 
     <ComputeResult :compute="compute" v-if="if_show_compute_result" class="compute_show"></ComputeResult>
     <Alert v-if="dialog.if_show_tip" :tip="dialog.tip" :btn1_text="dialog.btn1_text" :btn2_text="dialog.btn2_text"
-      @btn1_click="close_tip" @btn2_click="close_tip"></Alert>
+      @btn1_click="btn1_click" @btn2_click="btn2_click"></Alert>
     <EndShow :play="play" v-if="if_show_end" @goManual="goManual" @back="goPlay"></EndShow>
   </div>
 </template>
 
 <script>
-import axios from "axios";
 import Util from "../../../static/js/util/util";
 import Board from "../tools/GoBoard";
 import ComputeResult from "../tools/ComputeResult"
@@ -72,6 +71,7 @@ import PlayGuys from "../tools/playSides/PlayGuys"
 import Back from "../tools/Back"
 import Alert from "../tools/Alert"
 import EndShow from "../tools/play/EndShow"
+import PlayRoomRequest from "../../api/room"
 export default {
   name: "playUserRoom",
   components: {
@@ -82,19 +82,15 @@ export default {
     let params = new URLSearchParams();
     params.append("roomid", roomid);
     let that = this;
-    axios({
-      method: "post",
-      url: "http://localhost:8081/playroom/",
-      data: params,
-    }).then((res) => {
+    PlayRoomRequest.getRoomDetail(params).then((res) => {
         let room = res.data.room;
         if (room.state == "已结束") {
           let path = "/play/room/manual/" + room.roomid;
           that.$router.push({ path: path });
           return false;
         }
-      }).catch(function (error) {
-        console.log(error);
+      }).catch(function (e) {
+        console.log(e);
       });
   },
   created() {
@@ -164,6 +160,8 @@ export default {
         tip: "",
         btn1_text: "确定",
         btn2_text: "取消",
+        btn1_state:"close",
+        btn2_state:"close"
       },
       socket1: null,
       socket2: null,
@@ -186,13 +184,25 @@ export default {
   },
   methods: {
     // 打开dialog
-    open_tip(tip) {
-      this.dialog.if_show_tip = true;
-      this.dialog.tip = tip;
+    open_tip(tip,btn1_text="确定",btn2_text="取消",btn1_state="close",btn2_state="close") {
+      this.dialog = {
+        if_show_tip:true,
+        tip:tip,
+        btn1_text:btn1_text,
+        btn2_text:btn2_text,
+        btn1_state:btn1_state,
+        btn2_state:btn2_state
+      };
     },
     close_tip() {
-      this.dialog.if_show_tip = false;
-      this.dialog.tip = "";
+      this.dialog={
+        if_show_tip: false,
+        tip: "",
+        btn1_text: "确定",
+        btn2_text: "取消",
+        btn1_state:"close",
+        btn2_state:"close"
+      }
     },
 
     // 打开dialog
@@ -301,6 +311,19 @@ export default {
           request_id: message.request_id
         };
         this.socket1.send(JSON.stringify(msg));
+      } else if(message.type=="request_conduct"){
+        let other = this.black.userid==this.user.userid?this.white:this.black;
+        this.open_tip(other.name+"发起数子申请，是否同意","同意","拒绝","agree_requestConduct","refuse_requestConduct");
+      }else if(message.type=="cancel_conduct"){
+        this.close_tip();
+      }else if(message.type=="agree_conduct"){
+
+      }else if(message.type=="refuse_conduct"){
+
+      }else if(message.type=="refuse_result"){
+
+      }else if(message.type=="agree_result"){
+
       }
     },
 
@@ -362,12 +385,7 @@ export default {
       let params = new URLSearchParams();
       params.append("roomid", that.roomid);
       // 请求房间信息
-      axios({
-        method: "post",
-        url: "http://localhost:8081/playroom/",
-        data: params,
-      }).then((res) => {
-          console.log(res.data);
+      PlayRoomRequest.getRoomDetail(params).then((res) => {
           let room = res.data.room;
           that.play = room
           if (room.state == "已结束") {
@@ -435,8 +453,7 @@ export default {
           that.initwebsocket();
         }).catch(function (error) {
           console.log(error);
-          let path = "/play";
-          that.$router.push({ path: path });
+          that.$router.push({ path: "/play" });
           return false;
         });
     },
@@ -688,12 +705,100 @@ export default {
       };
       this.socket2.send(JSON.stringify(message));
     },
+
     goManual(){
        let path ="/play/room/manual/" + this.roomid;
        this.$router.push({ path:path});
     },
+
     goPlay(){
-      this.$router.push({ path:"/play"});
+      this.$router.push({path:path});
+    },
+
+    //提出数子申请
+    conduct(){
+      this.open_tip("确定要发起数子申请吗?","确定","取消","request_conduct","close");
+    },
+
+    //提出数子申请
+    request_conduct(){
+      let message = {
+        type: "request_conduct",
+      };
+      this.socket1.send(message);
+      this.close_tip();
+    },
+
+    btn1_click(){
+      if(this.dialog.btn1_state=="close"){
+        this.close_tip();
+      }
+      else if(this.dialog.btn1_state=="agree_requestConduct"){
+        this.agree_requestConduct();
+      }
+      else if(this.dialog.btn1_state=="agree_result"){
+        this.agree_conduct();
+      }
+      else if(this.dialog.btn1_state=="request_conduct"){
+        this.request_conduct();
+      }
+    },
+
+    btn2_click(){
+      if(this.dialog.btn2_state=="close"){
+        this.close_tip();
+      }
+      else if(this.dialog.btn2_state=="refuse_requestConduct"){
+        this.refuse_requestConduct();
+      }
+      else if(this.dialog.btn2_state=="refuse_result"){
+        this.refuse_conduct();
+      }
+    },
+
+    //取消数子申请
+    cancel_requestConduct(){
+      let message = {
+        type: "cancel_conduct",
+      };
+      this.socket1.send(message);
+      this.close_tip();
+    },
+
+    //同意数子申请
+    agree_requestConduct(){
+      let message = {
+        type: "agree_conduct",
+      };
+      this.socket1.send(message);
+      this.close_tip();
+    },
+
+    //拒绝数子申请
+    refuse_requestConduct(){
+      let message = {
+        type: "refuse_conduct",
+      };
+      this.socket1.send(message);
+      this.close_tip();
+    },
+
+    //同意数子结果
+    agree_conduct(){
+      let message = {
+        type: "agree_result"
+      };
+      this.socket1.send(message);
+      this.close_tip();
+    },
+
+    //拒绝数子结果
+    refuse_conduct(){
+      let message = {
+        type: "refuse_result"
+      };
+      this.socket1.send(message);
+      this.close_tip();
     }
   },
 };
@@ -710,10 +815,6 @@ body {
   padding: 0;
   margin: 0;
   overflow: hidden;
-}
-
-.back{
-
 }
 
 .playRoom {

@@ -1,6 +1,6 @@
 <template>
   <div class="playRoom">
-    <Back :href="'/play'"/>
+    <Back :href="'/play'" class="cursor_pointer"/>
     <Board :game="game" ref="goBoard" @init="init_board" @play="played" @compute="compute_result" class="board" @handicap_coords="handicaps"></Board>
     <img class="begin-img" :src="begin_img" v-if="game.me_player != 3 && if_show_begin"/>
     <div class="playRoom-right">
@@ -61,7 +61,6 @@
 </template>
 
 <script>
-  import axios from "axios";
   import Util from "../../../static/js/util/util";
   import Board from "../tools/GoBoard";
   import ComputeResult from "../tools/ComputeResult"
@@ -72,6 +71,7 @@
   import Back from "../tools/Back"
   import Alert from "../tools/Alert";
   import EndShow from "../tools/play/EndShow"
+  import PlayRoomRequest from "../../api/room"
   export default {
     name: "playUserRoom",
     components: {
@@ -82,11 +82,7 @@
       let params = new URLSearchParams();
       params.append("roomid", roomid);
       let that = this;
-      axios({
-        method: "post",
-        url: "http://localhost:8081/playroom/",
-        data: params,
-      }).then((res) => {
+      PlayRoomRequest.getRoomDetail(params).then((res) => {
         let room = res.data.room;
         if (room.state == "已结束") {
           let path = "/play/room/manual/" + room.roomid;
@@ -378,19 +374,13 @@
         let params = new URLSearchParams();
         params.append("roomid", that.roomid);
         // 请求房间信息
-        axios({
-          method: "post",
-          url: "http://localhost:8081/playroom/",
-          data: params,
-        }).then((res) => {
-          console.log(res.data);
+        PlayRoomRequest.getRoomDetail(params).then((res) => {
           let room = res.data.room;
           if (room.state == "已结束") {
             let path = "/play/room/manual/" + room.roomid;
             that.$router.push({ path: path });
             return false;
           }
-
           //得出当前用户情况
           let blackUser = room.black_player;
           let whiteUser = room.white_player;
@@ -568,14 +558,9 @@
           bot: that.get_AI_type(bot_name),
           handicap:that.game.handicap
         }
-        axios({
-          method: 'post',
-          url: 'http://127.0.0.1:5000/select-move',
-          data: params
-        }).then(res => {
+        PlayRoomRequest.GetAIMove(params).then(res => {
           if (!that.game_message.if_begin)
             return
-          console.log(res.data);
           if(res.data.bot_move=="resign"){
             that.game_message.result.winner = that.game.current_player
             that.game_message.result.content = that.game.current_player==2?'黑中盘胜':'白中盘胜'
@@ -606,7 +591,6 @@
           console.log(e)
         })
       },
-
 
 
       //计算结果
@@ -798,10 +782,6 @@
     padding: 0;
     margin: 0;
     overflow: hidden;
-  }
-
-  .back{
-
   }
 
   .playRoom {

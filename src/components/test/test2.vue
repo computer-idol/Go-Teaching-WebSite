@@ -21,6 +21,7 @@
           <button @click="close_compute" v-if="game.if_show_compute">关闭形势</button>
           <button @click="showNum" v-if="!game.if_show_sequence">显示手数</button>
           <button @click="cancelNum" v-if="game.if_show_sequence">取消手数</button>
+          <button @click="conduct">胜负判断</button>
         </div>
         <div style="width: auto;height: 40px;background: url('../../../static/imgs/button/btn_yellow.png')no-repeat;
                 background-size: 260px 40px;display: flex;flex-direction: row;align-items: center;" v-if="if_begin">
@@ -88,7 +89,7 @@
          gameRuleList:[],
          if_show_compute_result:false,
          game_msg:"",
-         sgf:"(;SZ[19]FF[3]PB[李喆六段]PW[柯洁九段]PC[野狐围棋]DT[2020-03-06]KM[7.5]RE[白中盘胜]GN[华为手机杯围甲网络热身赛3轮]RO[165];B[qd];W[dq];B[dc];W[oq];B[do];W[oc];B[df];W[pe];B[qe];W[pf];B[qg];W[co];B[cn];W[cp];B[dn];W[fp];B[qq];W[po];B[qo];W[dd];B[cd];W[qn];B[pp];W[op];B[rn];W[pn];B[rm];W[cc];B[ce];W[dk];B[gm];W[ip];B[fj];W[fd];B[db];W[ic];B[no];W[ec];B[gc];W[eb];B[cb];W[gd];B[jp];W[oo];B[io];W[hp];B[jq];W[lp];B[hr];W[gq];B[lo];W[mp];B[ko];W[di];B[bk];W[eh];B[cj];W[qf];B[rf];W[pg];B[qh];W[rg];B[rh];W[re];B[sg];W[qc];B[rd];W[gh];B[lr];W[nm];B[ig];W[kf];B[pd];W[od];B[mg];W[kh];B[ne];W[me];B[nk];W[mo];B[nd];W[oe];B[nf];W[mb];B[ld];W[je];B[pc];W[pb];B[rc];W[dj];B[ch];W[mi];B[ni];W[nh];B[mh];W[oi];B[li];W[nj];B[mj];W[mk];B[ni];W[oj];B[lj];W[ml];B[jd];W[id];B[ii];W[jn];B[kl];W[jo];B[kp];W[jj];B[ji];W[jl];B[km];W[jm];B[jk];W[kn];B[ik];W[ln];B[gr];W[fr];B[iq];W[qr];B[rr];W[gj];B[lc];W[hk];B[jc];W[ij];B[kj];W[hj];B[nc];W[ph];B[bm];W[nb];B[ib];W[ie];B[kb];W[hb];B[ha];W[gb];B[ke];W[ki];B[jf];W[kg];B[bo];W[le];B[kd];W[lf];B[ng];W[mi];B[hc];W[hd];B[ni];W[ci];B[bq];W[mi];B[ga];W[fb];B[ni];W[lq];B[mr];W[mi];B[nl])",
+         sgf:"(;SZ[19]FF[3]PB[朴廷桓九段]PW[柯洁九段]PC[成都]DT[2020-01-20]KM[7.5]RE[白中盘胜]GN[2020CCTV贺岁杯第1轮]RO[289];B[qd];W[dd];B[pq];W[dp];B[oc];W[po];B[qo];W[qn];B[qp];W[pn];B[nq];W[qe];B[pe];W[qf];B[rd];W[pj];B[fc];W[hc];B[cf];W[fd];B[cn];W[pf];B[oe];W[ci];B[fp];W[fo];B[ck];W[gp];B[fq];W[dn];B[co];W[do];B[go];W[ho];B[gn];W[fn];B[gm];W[hq];B[cp];W[dq];B[cq];W[dl];B[dk];W[fl];B[of];W[bm];B[dr];W[er];B[cr];W[fr];B[cc];W[cd];B[dc];W[ed];B[bd];W[ec];B[be];W[kc];B[ph];W[qh];B[pg];W[pi];B[qg];W[pp];B[qq];W[rh];B[kq];W[dg];B[df];W[eg];B[bh];W[ko];B[jk];W[ji];B[jm];W[kl];B[jl];W[lj];B[km];W[in];B[ll];W[lp];B[mq];W[hj];B[nl];W[le];B[pl];W[ql];B[ef];W[ff];B[lc];W[lb];B[mc];W[kd];B[ei];W[di];B[ej];W[cg];B[bg];W[bj];B[bk];W[cm];B[bi];W[ap];B[ao];W[bo];B[aq];W[an];B[bp];W[fh];B[gi];W[gj];B[fi];W[hh];B[eb];W[fb];B[fa];W[gb];B[jr];W[mb];B[nb];W[rg];B[rf];W[hl];B[im];W[rn];B[hm];W[hr];B[ip];W[hp];B[no];W[nn];B[mn];W[mo];B[on];W[np];B[nm];W[oo];B[nn];W[ar];B[ao];W[lq];B[lr];W[ap];B[qk];W[pk];B[ao];W[nd];B[bn];W[nc];B[ob];W[mp];B[lg];W[mk];B[mh];W[pm];B[fm];W[el];B[em];W[dm];B[kj];W[ki];B[ln];W[kg];B[ro];W[db];B[cb];W[ea];B[sn];W[sm];B[so];W[rl];B[li];W[mi];B[lh];W[jj];B[kk];W[kh];B[ni];W[mj];B[nh];W[nj];B[ma];W[md];B[kb];W[ld];B[la];W[kp];B[oj];W[ok];B[oi];W[nk];B[ml];W[jq];B[kr];W[cj];B[aj];W[jb];B[qi];W[ri];B[ol];W[qj];B[iq];W[ir];B[jp];W[ka];B[na];W[bb];B[bc];W[ca];B[ba];W[aa];B[am];W[al];B[ak];W[od];B[pd];W[an];B[gh];W[gg];B[am];W[bl];B[ac];W[mf];B[hi];W[ii];B[lf];W[kf];B[nf];W[eb];B[ab];W[da];B[ba];W[js];B[gl];W[hk];B[en];W[eo];B[io];W[jn];B[hn];W[mr];B[nr];W[ks];B[ms];W[is];B[ls];W[gq];B[sg];W[sh];B[sf];W[ds];B[cs];W[es];B[ee];W[fe];B[oq];W[op];B[mg];W[ce];B[me];W[ne];B[mf];W[an];B[ch];W[dh];B[am];W[ek];B[dj];W[an];B[gk];W[am];B[fk];W[fj];B[ai];W[ij];B[eh];W[fg];B[bf];W[de];B[lk];W[jo];B[jq];W[kn];B[lo];W[om];B[il])",
       }
     },
     mounted(){
@@ -111,7 +112,7 @@
         this.black.name = game_message.black.name;
         this.black.level = game_message.black.level;
         this.gameRuleList = game_message.gameRuleList;
-        this.$refs.manualBoard.createManualBoard();
+        this.$refs.manualBoard.createManualBoard(this.sgf);
       },
       begin(){
         console.log("ok")
@@ -170,6 +171,10 @@
 
       move(dir){
         this.$refs.manualBoard.move(dir);
+      },
+
+      conduct(){
+        this.$refs.manualBoard.conduct(this.sgf)
       }
     }
   }

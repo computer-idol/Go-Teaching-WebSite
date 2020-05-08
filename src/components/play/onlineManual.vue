@@ -6,6 +6,7 @@
 
 <script>
 import manualLayout from "../tools/manual/manualLayout"
+import PlayRoomRequest from "../../api/room"
 import axios from "axios"
 export default {
   name: "onlineManual",
@@ -24,16 +25,11 @@ export default {
     let that = this;
     let params = new URLSearchParams();
     params.append("roomid", this.roomid);
-    axios({
-      method: "post",
-      url: "http://localhost:8081/playroom/",
-      data: params,
-    }).then((res) => {
-      console.log(res.data.room.record);
+    PlayRoomRequest.getRoomDetail(params).then((res) => {
       let sgf = res.data.room.record;
       that.$refs.manualLayout.init(sgf);
-    }).catch(function (error) {
-      console.log(error);
+    }).catch(function (e) {
+      console.log(e);
     });
   },
   methods: {}

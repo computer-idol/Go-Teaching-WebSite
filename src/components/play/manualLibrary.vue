@@ -1,7 +1,7 @@
 <template>
   <div class="manualLibrary">
     <div class="bg-header">
-      <Back :href="window.history.go(-1)"/>
+      <Back @click="window.history.go(-1)" class="cursor_pointer"/>
     </div>
     <div class="manualArea">
       <div class="main">
@@ -66,7 +66,7 @@
 <script>
 import UserLink from "../../components/tools/UserLink"
 import Back from "../../components/tools/Back"
-import axios from "axios";
+import ManualRequest from "../../api/manual"
 export default {
   components:{
     UserLink,Back
@@ -120,19 +120,13 @@ export default {
       that.header = "请选择棋手";
       let params = new URLSearchParams();
       params.append("country", "'" + country + "'");
-      axios({
-        method: "post",
-        url: "http://localhost:8081/getCountryPlayer",
-        data: params,
-      })
-        .then((res) => {
-          let nameList = res.data;
-          that.players = nameList;
-          that.findList(that.players[0]);
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      ManualRequest.getPlayCountryList(params).then((res) => {
+        let nameList = res.data;
+        that.players = nameList;
+        that.findList(that.players[0]);
+      }).catch(function (e) {
+        console.log(e);
+      });
     },
     cancel_show_player() {
       this.if_show_player = false;
@@ -152,21 +146,14 @@ export default {
       params.append("name", "'" + name + "'");
       params.append("currentPage", this.tablePage.currentPage);
       params.append("pageSize", this.tablePage.pageSize);
-      axios({
-        method: "post",
-        url: "http://localhost:8081/getManualList",
-        data: params,
-      })
-        .then((res) => {
-          console.log(res.data);
-          that.tableData = res.data.manualList;
-          that.tablePage.totalResult = res.data.count;
-          that.loading = false;
-        })
-        .catch(function (error) {
-          that.loading = false;
-          console.log(error);
-        });
+      ManualRequest.getManualList(params).then((res) => {
+        that.tableData = res.data.manualList;
+        that.tablePage.totalResult = res.data.count;
+        that.loading = false;
+      }).catch(function (e) {
+        that.loading = false;
+        console.log(e);
+      });
     },
     handlePageChange({ currentPage, pageSize }) {
       this.tablePage.currentPage = currentPage;
@@ -196,9 +183,7 @@ body {
   margin: 0;
   overflow: hidden;
 }
-.back:hover {
-  cursor: pointer;
-}
+
 .main {
   display: flex;
   flex-direction: row;
@@ -208,6 +193,7 @@ body {
 }
 .userlink{
   height: 500px;
+  margin-top: 100px;
 }
 .manual {
   margin-top: 80px;

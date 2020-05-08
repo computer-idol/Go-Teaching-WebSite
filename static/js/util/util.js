@@ -6,6 +6,13 @@ import More_MoreLarge from "../../../static/js/jgoboard-master/jgoboard-master/M
 import MostLarge from "../../../static/js/jgoboard-master/jgoboard-master/Mostlarge/board"
 import SgfParser from "../../../static/js/util/sgf"
 
+function arrTrans(num, arr) {
+  const newArr = [];
+  while(arr.length > 0) {
+    newArr.push(arr.splice(0, num));
+  }
+  return newArr;
+}
 
 //将字符串转成点
 function strTocoord(str,cols) {
@@ -229,5 +236,7 @@ function sortArr(userData,msg){
 
 
 export default {
-   strTocoord,coordTostr,getUrlKey,strTocoord2,choose_board_size,get_point_num,num_to_str,record_to_sgf,dateFormat,download,sortArr,get_cols
+   strTocoord,coordTostr,getUrlKey,strTocoord2,choose_board_size,
+   get_point_num,num_to_str,record_to_sgf,dateFormat,download,sortArr,get_cols,
+   arrTrans
 }

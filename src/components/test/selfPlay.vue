@@ -10,7 +10,7 @@
     <button @click="cancel_num">取消手数</button>
     <button @click="try_play">试下</button>
     <button @click="cancel_play">取消试下</button>
-
+    <button @click="conduct">判断胜负</button>
     <p>{{message}}</p>
     <p v-if="compute!=null">形势判断结果:黑{{ compute.black_total_num }}目,白{{ compute.black_total_num }}目,
       黑贴{{game.komi}}目,因此结果:{{ compute.result}}</p>
@@ -20,6 +20,7 @@
 <script>
 import Util from "../../../static/js/util/util";
 import Board from "../tools/GoBoard";
+import room from "../../api/room"
 export default {
   components: {
     alert,Board
@@ -32,13 +33,13 @@ export default {
       roomid:1,
       game: {
         board_size: 19,
-        handicap: 2,
-        current_player:2,
+        handicap: 0,
+        current_player:1,
         komi: 6.5,
-        first_player:2,
+        first_player:1,
         records:[],
-        variation_first:2,
-        me_player:2,
+        variation_first:1,
+        me_player:1,
         time:"",
         variations:[],
         if_try:false,
@@ -141,6 +142,7 @@ export default {
         roomid: this.roomid,
       };
       let sgf = Util.record_to_sgf(record);
+      this.$refs.goboard.conduct(sgf)
       console.log(sgf);
       return sgf;
     },
@@ -180,7 +182,8 @@ export default {
       this.$refs.goboard.cancel_play();
       this.message = "";
       this.game.variations = [];
-    }
+    },
+
   },
 };
 </script>

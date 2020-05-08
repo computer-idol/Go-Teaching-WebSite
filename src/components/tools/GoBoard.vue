@@ -11,6 +11,7 @@ import JGO from "../../../static/js/jgoboard-master/jgoboard-master/dist/jgoboar
 import Util from "../../../static/js/util/util";
 import Compute from "../../../static/js/util/compute_winner";
 import sgfParser from "../../../static/js/util/sgf";
+import room from "../../api/room"
 import $ from "jquery";
 export default {
   name: "board",
@@ -38,7 +39,8 @@ export default {
         black_capture_num:0
       },
       record_play: [], // 记录每次的落子情况
-      situation:[]
+      situation:[],
+      put_type:""
     }
   },
   methods: {
@@ -64,6 +66,8 @@ export default {
       });
     },
 
+
+
     /*
     放上记录的棋子
      */
@@ -81,13 +85,26 @@ export default {
       }
     },
 
+    // 放置题目的选择
+    put_choices(choices) {
+      for (let i = 0; i < choices.length; i++) {
+        let coord = Util.strTocoord(choices[i],Util.get_cols(19));
+        this.board.jboard.setType(coord, window.JGO.DIM_CHOICE);
+      }
+    },
+
+    put_select(coord){
+      this.board.jboard.setMark(coord, window.JGO.MARK.SELECTED);
+    },
+
     /*
     canvas监听
      */
     play(put_type) {
+      this.put_type=put_type;
       let that = this;
       that.board.canvas.addListener("click", function (coord, ev) {
-        if(that.game.me_player!=that.game.current_player&&!that.game.if_try)
+        if(that.game.me_player!=that.game.current_player&&!that.game.if_try&&that.game.me_player!=null)
           return;
         if (ev.shiftKey) {
           if (that.board.jboard.getMark(coord) == window.JGO.MARK.NONE) {
@@ -107,8 +124,8 @@ export default {
           coordStr:coordStr,
           if_try:that.game.if_try
         }
-        if (put_type == "sign") {
-          that.jboard.setMark(coord, window.JGO.MARK.SELECTED);
+        if (that.put_type == "sign") {
+          that.put_select(coord)
           message.state = "success";
           message.type = "sign";
         } else {
@@ -125,7 +142,7 @@ export default {
       });
       // 监听鼠标移动,显示半透明棋子
       that.board.canvas.addListener("mousemove", function (coord, ev) {
-        if(that.game.me_player!=that.game.current_player&&!that.game.if_try)
+        if(that.game.me_player!=that.game.current_player&&!that.game.if_try&&that.game.me_player!=null)
           return;
         if (coord.i == -1 || coord.j == -1 || (coord.i == that.board.lastX && coord.j == that.board.lastY))
           return;
@@ -134,10 +151,12 @@ export default {
         that.board.lastX = coord.i;
         that.board.lastY = coord.j;
         if (that.board.jboard.getType(coord) == window.JGO.CLEAR && that.board.jboard.getMark(coord) == window.JGO.MARK.NONE) {
-          if (put_type == "sign")
+          if (that.put_type == "sign") {
             that.board.jboard.setType(coord, window.JGO.DIM_SELECTED);
-          else
+          }
+          else {
             that.board.jboard.setType(coord, that.game.current_player == 2 ? window.JGO.DIM_WHITE : window.JGO.DIM_BLACK);
+          }
           that.board.lastHover = true;
         } else {
           that.board.lastHover = false;
@@ -145,7 +164,7 @@ export default {
       });
       // 监听鼠标移出
       that.board.canvas.addListener("mouseout", function (ev) {
-        if(that.game.me_player!=that.game.current_player&&!that.game.if_try)
+        if(that.game.me_player!=that.game.current_player&&!that.game.if_try&&that.game.me_player!=null)
           return;
         if (that.board.lastHover)
           that.board.jboard.setType(new window.JGO.Coordinate(that.board.lastX, that.board.lastY), window.JGO.CLEAR);
@@ -364,9 +383,41 @@ export default {
       this.move(0); // also updates game info
     },
 
-
+    //判断胜负
+    conduct(sgf){
+      let json = {
+        sgf:sgf,
+        p:2,
+        debug:true,
+        cache:false,
+        is_back:false
+      }
+      room.Compute(json).then(res=>{
+        console.log(res.data);
+        let pos = this.arrTrans(19,res.data.data.pos);
+        console.log(pos);
+        for (let i = 0; i < pos.length; i++) {
+          for (let j = 0; j < pos.length; j++) {
+            let coord = new window.JGO.Coordinate(i, j);
+            if (pos[i][j] < 0) {
+              if(board.stones[i][j]==2) continue;
+              else {
+                board.setMark(coord, window.JGO.MARK.WHITE_TERRITORY);
+              }
+            } else if (pos[i][j]>0) {
+              if(board.stones[i][j]==1) continue;
+              else {
+                board.setMark(coord, window.JGO.MARK.BLACK_TERRITORY);
+              }
+            }
+          }
+        }
+        this.$emit("conduct",pos)
+      }).catch(e =>{
+        console.log(e)
+      })
+    },
   }
-
 };
 </script>
 

@@ -38,7 +38,7 @@ export default {
   display: flex;
   flex-direction: column;
   position: fixed;
-  left: 30%;
+  left: 40%;
   top: 200px;
   z-index: 1000;
 }

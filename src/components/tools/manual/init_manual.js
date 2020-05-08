@@ -40,6 +40,11 @@ function get_message(sgf) {
       if (game.handicap > 0) {
         game.komisituation = "白让" + game.handicap + "子不贴目";
         game.first_player = 2;
+        game.current_player = 2;
+      }
+      else{
+        game.first_player = 1;
+        game.current_player = 1;
       }
     }
   }

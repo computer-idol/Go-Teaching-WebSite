@@ -15,6 +15,7 @@
   import Compute from "../../../../static/js/util/compute_winner";
   import sgfParser from "../../../../static/js/util/sgf";
   import Alert from "../Alert"
+  import room from "../../../api/room"
   import $ from "jquery";
   export default {
     name: 'manualBoard',
@@ -83,7 +84,7 @@
          that.board.jsetup.create("board", function (canvas) {
            that.board.canvas = canvas;
          });
-         that.loadSGF(that.sgf);
+         that.loadSGF(sgf);
        },
       loadSGF(sgf) {
         this.json = sgfParser.sgf2jsonMain(sgf);
@@ -101,6 +102,7 @@
       },
 
       move(dir) {
+        this.board.notifier.board.setType(window.JGO.util.getHandicapCoordinates(this.board.jboard.width, this.game.handicap), window.JGO.BLACK);
         if (this.game.if_try) {
           this.open_tip("清先关闭试下");
           return;
@@ -301,6 +303,7 @@
         let compute = new Compute.Compute(martix, this.game.komi, this.Eat.white, this.Eat.black);
         let gameResult = compute.conduct_lead();
         let situation = gameResult.situation;
+
         this.situation = situation;
         for (let i = 0; i < situation.length; i++) {
           for (let j = 0; j < situation.length; j++) {
@@ -324,7 +327,43 @@
             }
           }
         }
-      }
+      },
+
+      //判断胜负
+      conduct(sgf){
+        let json = {
+          sgf:sgf,
+          p:2,
+          debug:true,
+          cache:false,
+          is_back:false
+        }
+        room.Compute(json).then(res=>{
+          console.log(res.data);
+          let pos = Util.arrTrans(19,res.data.data.pos);
+          let board = this.board.notifier.board;
+          console.log(pos);
+          for (let i = 0; i < pos.length; i++) {
+            for (let j = 0; j < pos.length; j++) {
+              let coord = new window.JGO.Coordinate(i, j);
+              if (pos[i][j] < 0) {
+                if(board.stones[i][j]==2) continue;
+                else {
+                  board.setMark(coord, window.JGO.MARK.WHITE_TERRITORY);
+                }
+              } else if (pos[i][j]>0) {
+                if(board.stones[i][j]==1) continue;
+                else {
+                  board.setMark(coord, window.JGO.MARK.BLACK_TERRITORY);
+                }
+              }
+            }
+          }
+          this.$emit("conduct",pos)
+        }).catch(e =>{
+          console.log(e)
+        })
+      },
     }
   }
 </script>

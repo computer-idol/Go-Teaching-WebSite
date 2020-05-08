@@ -6,7 +6,7 @@
 
 <script>
 import manualLayout from "../tools/manual/manualLayout"
-import axios from "axios"
+import ManualRequest from '../../api/manual'
 export default {
   name: "detailexercise",
   components: {
@@ -25,15 +25,11 @@ export default {
     let that = this;
     let params = new URLSearchParams();
     params.append("manualid", that.manualid);
-    axios({
-      method: "post",
-      url: "http://localhost:8081/getManual",
-      data: params,
-    }).then((res) => {
+    ManualRequest.getManualDetail(params).then((res) => {
       let sgf = res.data.sgf;
       that.$refs.manualLayout.init(sgf);
-    }).catch(function (error) {
-      console.log(error);
+    }).catch(function (e) {
+      console.log(e);
     });
   },
   methods: {}

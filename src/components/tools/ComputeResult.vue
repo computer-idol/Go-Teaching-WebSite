@@ -4,13 +4,13 @@
        <div class="player_situation" v-for="situation in compute.situations" :key="situation.name">
          <img :src="situation.icon"/>
          <span class="player_name">{{situation.name}}</span>
-         <span style="position: absolute;left:110px">{{situation.num}}目</span>
-         <span style="position: absolute;left:150px">提{{situation.eatCount}}子</span>
+         <span style="position: absolute;left:90px">{{situation.num}}目</span>
+         <span style="position: absolute;left:140px">提{{situation.eatCount}}子</span>
        </div>
      </div>
      <div class="compute_right">
        <div class="compute_result">
-         <span style="color:coral;font-weight: bold">{{compute.result}}</span>
+         <span style="color:coral;font-weight: bold;font-size: 14px">{{compute.result}}</span>
          <span style="font-size: 12px">{{compute.komisituation}}</span>
        </div>
      </div>
@@ -71,20 +71,19 @@
     font-weight: bold;
   }
   .compute_right{
-    width:35%;
+    width:120px;
     height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
   }
   .compute_result{
-    width:auto;
+    width:100px;
     height: 80%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 3%;
     background: #b0c9da;
     border-radius: 5px;
   }

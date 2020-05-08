@@ -7,113 +7,62 @@
     <div class="main">
       <div class="login" v-if="iflogin">
         <div class="login_header">
-          <h3>围棋教育平台</h3>
+          <h3>交互型少儿围棋教学平台</h3>
         </div>
         <div class="login_main">
           <div class="form">
             <div class="input">
-              <input
-                type="text"
-                v-model="login_params.account"
-                placeholder="请输入帐号"
-              />
-              <input
-                type="password"
-                v-model="login_params.password"
-                style="margin-top: 10px;"
-                placeholder="请输入密码"
-              />
+              <input type="text" v-model="login_params.account" placeholder="请输入帐号"/>
+              <input type="password" v-model="login_params.password" style="margin-top: 10px;" placeholder="请输入密码"/>
             </div>
             <div class="btn">
               <button id="loginBtn" @click="login">登录</button>
-              <button id="regBtn" @click="goReg">注册</button>
+              <button id="regBtn" @click="iflogin=false">注册</button>
             </div>
           </div>
         </div>
       </div>
       <div class="register" v-if="!iflogin">
         <div class="register_header">
-          <h3>围棋智能教育平台</h3>
+          <h3>交互型少儿围棋教学平台</h3>
         </div>
         <div class="register_main">
           <div class="form">
             <div class="input">
-              <input
-                type="text"
-                v-model="reg_params.name"
-                placeholder="请输入昵称"
-              />
-              <input
-                type="text"
-                v-model="reg_params.account"
-                placeholder="请输入帐号"
-              />
-              <input
-                type="password"
-                v-model="reg_params.password"
-                style="margin-top: 10px;"
-                placeholder="请输入密码"
-              />
-              <el-select
-                v-model="reg_params.level"
-                placeholder="请选择你的级别"
-              >
-                <el-option value="9D" label="9D"></el-option>
-                <el-option value="8D" label="8D"></el-option>
-                <el-option value="7D" label="7D"></el-option>
-                <el-option value="6D" label="6D"></el-option>
-                <el-option value="5D" label="5D"></el-option>
-                <el-option value="4D" label="4D"></el-option>
-                <el-option value="3D" label="3D"></el-option>
-                <el-option value="2D" label="2D"></el-option>
-                <el-option value="1D" label="1D"></el-option>
-                <el-option value="1K" label="1K"></el-option>
-                <el-option value="2K" label="2k"></el-option>
-                <el-option value="3K" label="3k"></el-option>
-                <el-option value="4k" label="4k"></el-option>
-                <el-option value="5k" label="5k"></el-option>
-                <el-option value="6k" label="6k"></el-option>
-                <el-option value="7k" label="7k"></el-option>
-                <el-option value="8k" label="8k"></el-option>
-                <el-option value="9k" label="9k"></el-option>
-              </el-select>
+              <input type="text" v-model="reg_params.name" placeholder="请输入昵称"/>
+              <input type="text" v-model="reg_params.account" placeholder="请输入帐号"/>
+              <input type="password" v-model="reg_params.password" style="margin-top: 10px;" placeholder="请输入密码"/>
+              <select v-model="reg_params.level" placeholder="请选择你的级别" class="select">
+                <option value="level" label="level" v-for="level in levels" :key="level"></option>
+              </select>
             </div>
             <div class="btn">
-              <span style="color: white;"
-                >已有帐号？<a
-                  style="
+              <span style="color: white;">已有帐号？<a style="
                     color: lightblue;
                     text-decoration: underline lightskyblue;
-                  "
-                  @click="goLogin"
-                  >去登录</a
-                ></span
-              >
+                  " @click="iflogin = true">去登录</a></span>
               <button class="regBtn" @click="register">注册</button>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <alert
-      v-if="dialog.if_show_tip"
-      :tip="dialog.tip"
-      :btn1_text="dialog.btn1_text"
-      :btn2_text="dialog.btn2_text"
-      @btn1_click="close_tip"
-      @btn2_click="close_tip"
-    ></alert>
+    <Alert v-if="dialog.if_show_tip" :tip="dialog.tip" :btn1_text="dialog.btn1_text" :btn2_text="dialog.btn2_text"
+           @btn1_click="close_tip" @btn2_click="close_tip"
+    ></Alert>
   </div>
 </template>
 <script>
-import axios from "axios";
-import alert from "./tools/Alert";
+import Alert from "./tools/Alert";
+import UserRequest from "../api/user"
 export default {
-  name: "detailexercise",
+  name: "login",
   components: {
-    alert,
+    Alert
   },
-  created() {},
+  created() {
+    document.title="交互型少儿围棋教学平台";
+  },
   data() {
     return {
       iflogin: true,
@@ -125,7 +74,7 @@ export default {
         name: "",
         account: "",
         password: "",
-        level: "",
+        level: "9k",
       },
       dialog: {
         if_show_tip: false,
@@ -133,18 +82,11 @@ export default {
         btn1_text: "确定",
         btn2_text: "取消",
       },
-    };
+      levels:["9k","8k","7k","6k","5k","4k","3k","2k","1k","1D","2D","3D","4D","5D","6D","7D","8D","9D"]
+    }
   },
   mouted() {},
   methods: {
-    // 显示登录界面
-    goLogin() {
-      this.iflogin = true;
-    },
-    // 显示注册界面
-    goReg() {
-      this.iflogin = false;
-    },
     // 打开dialog
     open_tip(tip) {
       this.dialog.if_show_tip = true;
@@ -165,25 +107,18 @@ export default {
         let params = new URLSearchParams();
         params.append("account", this.login_params.account);
         params.append("password", this.login_params.password);
-        axios({
-          method: "post",
-          url: "http://localhost:8081/login",
-          data: params,
-        })
-          .then((res) => {
-            console.log(res.data);
-            if (res.data.user != null) {
-              console.log(res.data.user);
-              sessionStorage.setItem("user", JSON.stringify(res.data.user));
-              that.$router.push({ path: "/index" });
-            } else {
-              that.open_tip("帐号密码错误");
-            }
-          })
-          .catch(function (error) {
-            console.log(error);
-            that.open_tip("登录失败");
-          });
+        UserRequest.login(params).then((res) => {
+          if (res.data.user != null) {
+            sessionStorage.setItem("user", JSON.stringify(res.data.user));
+            sessionStorage.setItem("levelScoreList",JSON.stringify(res.data.levelScoreList))
+            that.$router.push({ path: "/index" });
+          } else {
+            that.open_tip("帐号密码错误");
+          }
+        }).catch(function (e) {
+          console.log(e)
+          that.open_tip("登录失败");
+        });
       }
     },
 
@@ -204,16 +139,11 @@ export default {
         params.append("password", this.reg_params.password);
         params.append("name", this.reg_params.name);
         params.append("level", this.reg_params.level);
-        axios({
-          method: "post",
-          url: "http://localhost:8081/register",
-          data: params,
-        })
-          .then((res) => {})
-          .catch(function (error) {
-            console.log(error);
+        UserRequest.register.then((res) => {
+          that.open_tip("注册成功，请去登录")
+        }).catch(function (error) {
             that.open_tip("注册失败");
-          });
+        });
       }
     },
   },
@@ -239,9 +169,7 @@ body {
   background-size: 100% 100%;
 }
 
-/*
-        背景的流星划过效果
-      */
+/*背景的流星划过效果*/
 .star {
   display: block;
   width: 5px;
@@ -513,5 +441,18 @@ a:hover {
 }
 .regBtn:hover {
   cursor: pointer;
+}
+
+
+
+.select{
+  width: 335px;
+  border-radius: 30px;
+  margin-top: 10px;
+  border: 2px solid #cb60b3;
+  font-size: 18px;
+  color: black;
+  padding: 5px;
+  height: 40px;
 }
 </style>

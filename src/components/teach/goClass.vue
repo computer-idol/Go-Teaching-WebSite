@@ -84,33 +84,29 @@
         </div>
       </div>
     </div>
-    <alert
-      v-if="dialog.if_show_tip"
-      :tip="dialog.tip"
-      :btn1_text="dialog.btn1_text"
-      :btn2_text="dialog.btn2_text"
-      @btn1_click="close_tip"
-      @btn2_click="close_tip"
-    ></alert>
+    <Alert v-if="dialog.if_show_tip" :tip="dialog.tip" :btn1_text="dialog.btn1_text" :btn2_text="dialog.btn2_text"
+      @btn1_click="go_evalution" @btn2_click="close_tip"></Alert>
   </div>
 </template>
 
 <script>
-import axios from "axios";
-import alert from "../tools/Alert";
+import Alert from "../tools/Alert";
 import UserLink from "../tools/UserLink"
 import Back from "../tools/Back"
+import StudyRequest from "../../api/study"
+import EvaluationRequest from "../../api/evaluation"
 export default {
   name: "goClass",
   components: {
-    alert,UserLink,Back
+    Alert,UserLink,Back
   },
   created() {
     document.title = "学习";
-    var usermsg = sessionStorage.getItem("user");
-    if (usermsg != null) {
-      this.user = JSON.parse(usermsg);
+    const user = sessionStorage.getItem("user");
+    if (user != null) {
+      this.user = JSON.parse(user);
     }
+    this.open_tip("你想先测试看看自己的薄弱知识点吗?")
   },
   data() {
     return {
@@ -129,7 +125,7 @@ export default {
       linkList: [
         {text:"首页",href:"/index",id:"link1"},
         {text:"教程",href:"/study",id:"link2"},
-        {text:"棋谱欣赏",href:"/exercise",id:"link3"},
+        {text:"题库练习",href:"/exercise",id:"link3"},
         {text:"对弈大厅",href:"/play",id:"link4"}
       ]
     };
@@ -149,13 +145,7 @@ export default {
       let that = this;
       let params = new URLSearchParams();
       params.append("difficultid", difficultid);
-      axios({
-        method: "post",
-        url: "http://localhost:8081/study/getChapterList",
-        data: params,
-      })
-        .then((res) => {
-          console.log(res.data);
+      StudyRequest.getChapterList(params).then((res) => {
           let chapterList = res.data;
           if (chapterList.length == 0) {
             that.open_tip("暂时没有这个难度的教程");
@@ -165,8 +155,7 @@ export default {
             that.page = 1;
             that.initChapter();
           }
-        })
-        .catch(function (error) {
+        }).catch(function (error) {
           console.log(error);
         });
     },
@@ -238,6 +227,26 @@ export default {
       let path = "/study/detail/" + this.chapterList.length + "/" + id;
       this.$router.push({ path: path });
     },
+
+    go_evalution(){
+      let that = this;
+      let params = new URLSearchParams();
+      let levels = ["9k","8k","7k","6k","5k","4k","3k","2k","1k","1D","2D","3D","4D","5D","6D","7D","8D","9D"];
+      params.append("userid",this.user.userid);
+      params.append("evaluationid",levels.indexOf(this.user.level)+1);
+      params.append("level",this.user.level);
+      EvaluationRequest.createEvaluation(params).then(res =>{
+        if(res.data!=""){
+          let path = "/evaluation/detail/"+res.data.recordid;
+          this.$router.push({path:path});
+        }
+        else{
+          that.open_tip("没有"+this.user.level+"的测验题");
+        }
+      }).catch(e =>{
+        console.log(e)
+      })
+    }
   },
 };
 </script>

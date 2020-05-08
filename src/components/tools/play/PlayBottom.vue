@@ -21,7 +21,7 @@
       open(index){
         let link = this.linkList[index];
         if(link.href=="javascript:void(0);")
-           this.$emit("open_user");
+           this.$emit("open_user",index);
       }
     }
   }

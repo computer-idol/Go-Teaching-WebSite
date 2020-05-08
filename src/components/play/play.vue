@@ -2,32 +2,27 @@
   <div class="play_bg">
     <div class="bg-header">
       <div class="xing"></div>
-      <Back :href="'/home'"/>
+      <Back :href="'/home'" class="cursor_pointer"/>
     </div>
     <div class="main">
       <UserLink :user="user" :linkList="linkList" class="userlink"></UserLink>
       <PlayTable :playData="playData" class="playList"></PlayTable>
     </div>
-    <img src="../../../static/imgs/button/close.png" class="cursor_pointer close_table" @click="if_show_user=false" :class="{ closeActive: if_show_user, closeNegative: !if_show_user }">
+    <img src="../../../static/imgs/button/close.png" class="cursor_pointer close_table"
+         @click="if_show_user=false" :class="{ closeActive: if_show_user, closeNegative: !if_show_user }">
     <UserTable :userData="userData" :user="user" :class="{ active: if_show_user, close: !if_show_user }" @invite_dialog="invite"></UserTable>
     <PlayBottom :linkList="bottomLink" @open_user="open_user"></PlayBottom>
     <PlayRequest :response="response" @goplay="go_play" @cancel="ifsetup = false"
                  v-if="ifsetup" :request="user" :if_AI="0"></PlayRequest>
     <ReceiveRequest :play="play" v-if="if_receive" @resfuse="refuse" @agree="agree"></ReceiveRequest>
     <WaitResponse :response="response" v-if="if_show_wait" @cancel="cancel"></WaitResponse>
-    <alert
-      v-if="dialog.if_show_tip"
-      :tip="dialog.tip"
-      :btn1_text="dialog.btn1_text"
-      :btn2_text="dialog.btn2_text"
-      @btn1_click="close_dialog"
-      @btn2_click="close_dialog"
-    ></alert>
+    <Alert v-if="dialog.if_show_tip" :tip="dialog.tip" :btn1_text="dialog.btn1_text" :btn2_text="dialog.btn2_text"
+           @btn1_click="close_dialog" @btn2_click="close_dialog"></Alert>
   </div>
 </template>
 
 <script>
-import alert from "../tools/Alert";
+import Alert from "../tools/Alert";
 import PlayRequest from "../tools/play/request/PlayRequest"
 import Back from "../tools/Back"
 import UserLink from "../tools/UserLink"
@@ -39,16 +34,18 @@ import WaitResponse from "../tools/play/request/WaitResponse"
 import UserTable from "../tools/play/UserTable"
 import PlayBottom from "../tools/play/PlayBottom"
 import EndShow from "../tools/play/EndShow"
+
 export default {
-  name: "detailexercise",
+  name: "play",
   components: {
-    alert,PlayRequest,Back,UserLink,PlayTable,ReceiveRequest,WaitResponse,UserTable,PlayBottom,EndShow
+    Alert,PlayRequest,Back,UserLink,PlayTable,ReceiveRequest,
+    WaitResponse,UserTable,PlayBottom,EndShow
   },
   created() {
     document.title = "对弈大厅";
-    var usermsg = sessionStorage.getItem("user");
-    if (usermsg != null) {
-      this.user = JSON.parse(usermsg);
+    const user = sessionStorage.getItem("user");
+    if (user != null) {
+      this.user = JSON.parse(user);
       this.user.state = "空闲";
       sessionStorage.setItem("user", JSON.stringify(this.user));
       this.initwebsocket();
@@ -83,10 +80,11 @@ export default {
         {text:"棋谱欣赏",href:"/play/manualLibrary",id:"link4"}
       ],
       bottomLink:[
-        {img:"../../../static/imgs/link/myManuals.png",href:"/play/myManuals",id:"bottomLink1"},
-        {img:"../../../static/imgs/link/AI_play.png",href:"/play/agentOpt",id:"bottomLink2"},
-        {img:"../../../static/imgs/link/play.png",href:"javascript:void(0);",id:"bottomLink3"},
-      ]
+        {img:"../../../static/imgs/link/AI_play.png",href:"/play/agentOpt",id:"bottomLink1"},
+        {img:"../../../static/imgs/link/play.png",href:"javascript:void(0);",id:"bottomLink2"},
+      ],
+      if_show_myManual:false,
+      myplay:[]
     };
   },
   mounted(){
@@ -102,8 +100,14 @@ export default {
       this.dialog.if_show_tip = false;
       this.dialog.tip = "";
     },
-    open_user(){
-      this.if_show_user = true;
+    open_user(index){
+      console.log(index)
+      if(index==2) {
+        this.if_show_user = true;
+      }
+      else if(index==0){
+        this.if_show_myManual = !this.if_show_myManual;
+      }
     },
     beforeunload(e) {
       var usermsg = sessionStorage.getItem("user");
@@ -181,7 +185,7 @@ export default {
 
     closeWebSocket2(e) {
       this.user.state = "空闲";
-      sessionStorage.setItem("user", JSON.stringify(that.user));
+      sessionStorage.setItem("user", JSON.stringify(this.user));
       console.log("用户websocket连接已经断开");
     },
     getWebSocket2(e) {
@@ -314,4 +318,5 @@ export default {
   .closeNegative{
     animation: close-negative 0.3s normal forwards;
   }
+
 </style>

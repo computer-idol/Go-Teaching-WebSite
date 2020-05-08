@@ -66,13 +66,13 @@
 </template>
 
 <script>
-import axios from "axios";
 import JGO from "../../../static/js/jgoboard-master/jgoboard-master/dist/jgoboard-latest";
 import Sgf from "../../../static/js/util/sgf";
 import Util from "../../../static/js/util/util";
 import alert from "../tools/Alert";
 import UserLink from "../../components/tools/UserLink"
 import Back from "../tools/Back"
+import StudyRequest from "../../api/study"
 import $ from "jquery";
 export default {
   name: "classDetail",
@@ -184,12 +184,7 @@ export default {
       let that = this;
       let params = new URLSearchParams();
       params.append("chapterid", this.chapterid);
-      axios({
-        method: "post",
-        url: "http://localhost:8081/study/getClassList",
-        data: params,
-      }).then((res) => {
-          console.log(res.data);
+      StudyRequest.getClassList(params).then((res) => {
           that.classList = res.data.classList;
           that.chapter = res.data.chapter;
           document.title = that.chapter.chapterName;
@@ -225,18 +220,13 @@ export default {
       params.append("classid", nowClass.classid);
       params.append("chapterid", this.chapterid);
       let that = this;
-      axios({
-        method: "post",
-        url: "http://localhost:8081/study/getTeachStepList",
-        data: params,
-      }).then((res) => {
-          console.log(res.data);
+      StudyRequest.getTeachStepList(params).then((res) => {
           that.teachStepList = res.data;
           that.step = 0;
           that.if_begin = false;
       }).catch(function (error) {
           console.log(error);
-        });
+      });
     },
 
     // 初始化信息

@@ -7,36 +7,27 @@
       <img src="../../static/imgs/bg/star.png" class="shine shine4" />
     </div>
     <div class="user">
-      <img :src="user.photo" />
+      <img :src="user.photo" @click="show_user" class="cursor_pointer"/>
       <div class="user_message" align="left">
-        <span
-          style="
-            display: block;
-            width: 50px;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-          "
-          >{{ user.name }}</span
-        >
+        <span style="display: block;width: 50px;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;">{{ user.name }}</span>
         <span style="margin-left: 0; display: block;">{{ user.level }}</span>
       </div>
     </div>
     <div class="main">
       <div class="type">
         <div class="line1">
-          <div class="study" @click="goStudy">
+          <div class="study" @click="$router.push({ path:'/study'})">
             学习
           </div>
-          <div class="practice" @click="goPractice">
+          <div class="practice" @click="$router.push({ path: '/exercise'})">
             练习
           </div>
         </div>
         <div class="line2">
-          <div class="test" @click="goTest">
+          <div class="test" @click="$router.push({ path: '/evaluation'})">
             测评
           </div>
-          <div class="play" style="width: 160px;" @click="goPlay">
+          <div class="play" style="width: 160px;" @click="$router.push({ path: '/play'})">
             对弈大厅
           </div>
         </div>
@@ -44,7 +35,7 @@
     </div>
     <div class="bottom">
       <div class="link">
-        <a href="/myManual" style="margin-left: 30px;">
+        <a href="javascript:" style="margin-left: 30px;" @click="if_show_myManual = !if_show_myManual">
           <img src="../../static/imgs/link/myManuals.png" />
         </a>
         <a href="/myWrong">
@@ -55,37 +46,78 @@
         </a>
       </div>
     </div>
+    <myManuals :playData="playData" :user="user"  class="playList" v-if="if_show_myManual"></myManuals>
+    <img src="../../static/imgs/button/close.png" @click="if_show_myManual = false" v-if="if_show_myManual"
+         style="width: 50px; height: 50px; position: fixed;left: 82%;top: 90px;z-index: 1200;" class="cursor_pointer"/>
+    <UserCard :user="user" :levelScore="levelScore" v-if="if_show_user" @watch="watch" @record="record"></UserCard>
+    <img src="../../static/imgs/button/close.png" @click="if_show_user = false" v-if="if_show_user"
+         style="width: 30px; height: 30px; position: fixed;left: 62%;top: 190px;z-index: 1000;" class="cursor_pointer"/>
   </div>
 </template>
 
 <script>
+import myManuals from "./tools/user/myManuals"
+import RoomRequest from "../api/room"
+import UserCard from "./tools/user/UserCard"
 export default {
+  components:{
+    myManuals,UserCard
+  },
   created() {
     document.title = "首页";
-    var user = sessionStorage.getItem("user");
+    const user = sessionStorage.getItem("user");
     if (user != null) {
       this.user = JSON.parse(user);
     }
+    let that = this;
+    let params = new URLSearchParams();
+    params.append("userid",this.user.userid);
+    RoomRequest.getPlayUserRoomList(params).then(res =>{
+      that.playData = res.data;
+    }).catch(e =>{
+      console.log(e)
+    });
   },
   data() {
     return {
       user: {},
+      playData:[],
+      if_show_myManual:false,
+      levelScore:0,
+      if_show_user:false
     };
   },
   methods: {
-    goStudy() {
-      this.$router.push({ path: "/study" });
+    show_user(){
+       let levelScoreList = JSON.parse(sessionStorage.getItem("levelScoreList"));
+       let user = this.user;
+       let levels = ["9k","8k","7k","6k","5k","4k","3k","2k","1k","1D","2D","3D","4D","5D","6D","7D","8D","9D"];
+       let index = levels.indexOf(user.level)==17?17:levels.indexOf(user.level)+1
+       let filterList = levelScoreList.filter((obj) =>{
+         return obj.level==levels[index]
+       })
+       this.levelScore = filterList[0].score;
+       //取前20
+       let num = this.playData.length>=20?20:this.playData.length;
+       for(let i=0;i<num;i++){
+         let play = this.playData[i];
+         if((play.winner==1&&play.blackid==this.user.userid)||(play.winner==2&&play.whiteid==this.user.userid)){
+            play.ifwin = 1;
+         }
+         else{
+           play.ifwin = 0;
+         }
+       }
+       this.user.playList = this.playData.slice(0,num);
+       this.if_show_user = true
     },
-    goPractice() {
-      this.$router.push({ path: "/exercise" });
+    watch(){
+      this.if_show_myManual = true;
     },
-    goTest() {
-      this.$router.push({ path: "/test" });
-    },
-    goPlay() {
-      this.$router.push({ path: "/play" });
-    },
-  },
+    record(){
+
+    }
+  }
 };
 </script>
 
@@ -304,5 +336,12 @@ body {
 
 .link a img:hover {
   transform: translateY(-10px);
+}
+
+.playList {
+  position: fixed;
+  left: 15%;
+  top: 100px;
+  z-index: 1000;
 }
 </style>

@@ -104,6 +104,8 @@
         this.game.result = game_message.game.result;
         this.game.name = game_message.game.name;
         this.game.records = game_message.game.records;
+        this.game.first_player = game_message.game.first_player;
+        this.game.current_player = game_message.game.current_player;
         this.white.name = game_message.white.name;
         this.white.level = game_message.white.level;
         this.black.name = game_message.black.name;

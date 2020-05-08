@@ -2,7 +2,7 @@
   <div class="play_bg">
     <div class="bg-header">
       <div class="xing"></div>
-      <Back @click="window.history.go(-1)"/>
+      <Back @click="window.history.go(-1)" class="cursor_pointer"/>
     </div>
     <div class="playArea">
       <div class="main">
@@ -24,10 +24,10 @@
 </template>
 
 <script>
-import axios from "axios";
 import UserLink from "../../components/tools/UserLink"
 import PlayRequest from "../tools/play/request/PlayRequest"
 import Back from "../../components/tools/Back"
+import UserRequest from "../../api/user"
 export default {
   components: {
     PlayRequest,UserLink,Back
@@ -35,20 +35,17 @@ export default {
   created() {
     document.title = "人机对战";
     let that = this;
-    var usermsg = sessionStorage.getItem("user");
-    if (usermsg != null) {
-      this.user = JSON.parse(usermsg);
+    const user = sessionStorage.getItem("user");
+    if (user != null) {
+      this.user = JSON.parse(user);
       this.request= this.user;
       this.initwebsocket();
     }
-    axios({
-      method: "post",
-      url: "http://localhost:8081/getAgentList",
-    }).then((res) => {
-        that.agents = res.data;
-      }).catch(function (error) {
-        console.log(error);
-      });
+    UserRequest.getAIList().then((res) => {
+      that.agents = res.data;
+    }).catch(function (e) {
+      console.log(e);
+    });
   },
   data() {
     return {
@@ -67,9 +64,7 @@ export default {
   },
   methods: {
     initwebsocket() {
-      this.socket1 = new WebSocket(
-        "ws://localhost:8081/playwebsocket/" + this.user.userid
-      );
+      this.socket1 = new WebSocket("ws://localhost:8081/playwebsocket/" + this.user.userid);
       this.socket1.onopen = () => { console.log("对局websocket连接已经打开");};
       this.socket1.onclose = () =>{ console.log("对局websocket连接已经断开");};
       this.socket1.onerror = () => { console.log("连接发生错误");};
@@ -151,9 +146,7 @@ body {
     opacity: 1;
   }
 }
-.back:hover {
-  cursor: pointer;
-}
+
 .playArea {
   display: flex;
   flex-direction: column;

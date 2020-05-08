@@ -34,7 +34,7 @@ class Compute{
       this.ComputePointNum();
       return new GameResult(this.white_point,this.black_point,this.white_capture,this.black_capture,this.komi,this.situation);
    }
-   //计算该棋子的势力:横＋竖<=4为其势力影响范围
+   //计算该棋子的势力:横＋竖<=6为其势力影响范围
    ComputePowerSituation(flag,i,j){
        let n = this.martix.length;
        for(let x=0;x<=6;x++){

@@ -8,7 +8,7 @@
     <audio src="../../../static/sound/capture.wav" ref="audio6"></audio>
     <audio src="../../../static/sound/else.mp3" ref="audio7"></audio>
     <div class="bg-header">
-      <Back :href="'/exercise'"/>
+      <Back :href="'/exercise'" class="cursor_pointer"/>
     </div>
     <div class="exerciseArea">
       <UserLink :user="user" :linkList="linkList" class="userlink"></UserLink>
@@ -61,19 +61,12 @@
         </div>
       </div>
     </div>
-    <alert
-      v-if="dialog.if_show_tip"
-      :tip="dialog.tip"
-      :btn1_text="dialog.btn1_text"
-      :btn2_text="dialog.btn2_text"
-      @btn1_click="close_tip"
-      @btn2_click="close_tip"
-    ></alert>
+    <alert v-if="dialog.if_show_tip" :tip="dialog.tip" :btn1_text="dialog.btn1_text" :btn2_text="dialog.btn2_text"
+      @btn1_click="close_tip" @btn2_click="close_tip"></alert>
   </div>
 </template>
 
 <script>
-import axios from "axios";
 import JGO from "../../../static/js/jgoboard-master/jgoboard-master/dist/jgoboard-latest";
 import Medium from "../../../static/js/jgoboard-master/jgoboard-master/medium/board";
 import Sgf from "../../../static/js/util/sgf";
@@ -81,6 +74,7 @@ import Util from "../../../static/js/util/util";
 import alert from "../tools/Alert";
 import UserLink from "../../components/tools/UserLink"
 import Back from "../../components/tools/Back"
+import ExerciseRequest from "../../api/exercise"
 import $ from "jquery";
 export default {
   name: "detailexercise",
@@ -94,9 +88,9 @@ export default {
     this.type = this.types[this.typeid];
     this.level = this.levels[this.levelid];
     document.title = this.type + this.level + "题库";
-    var usermsg = sessionStorage.getItem("user");
-    if (usermsg != null) {
-      this.user = JSON.parse(usermsg);
+    const user = sessionStorage.getItem("user");
+    if (user != null) {
+      this.user = JSON.parse(user);
     }
     this.getExerciseList();
   },
@@ -145,7 +139,7 @@ export default {
       linkList: [
         {text:"首页",href:"/home",id:"link1"},
         {text:"教程",href:"/study",id:"link2"},
-        {text:"棋谱欣赏",href:"/exercise",id:"link3"},
+        {text:"棋谱欣赏",href:"/play/manualLibrary",id:"link3"},
         {text:"对弈大厅",href:"/play",id:"link4"}
       ]
     };
@@ -166,23 +160,17 @@ export default {
       params.append("level", "'" + this.level + "'");
       params.append("subType", this.subType);
       let that = this;
-      axios({
-        method: "post",
-        url: "http://localhost:8081/exercise/getSubExercise",
-        data: params,
-      }).then((res) => {
-          console.log(res.data);
-          if(res.data==""){
-            that.$router.push({path:"/404"})
-            return false;
-          }
-          let exerciseList = res.data;
-          that.exercises = exerciseList;
-          that.init();
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      ExerciseRequest.getExerciseSubTypeList(params).then((res) => {
+        if(res.data==""){
+          that.$router.push({path:"/404"})
+          return false;
+        }
+        let exerciseList = res.data;
+        that.exercises = exerciseList;
+        that.init();
+      }).catch(function (e) {
+        console.log(e);
+      });
     },
     init() {
       this.initBoard();
@@ -195,11 +183,7 @@ export default {
       this.init_message();
       $("#board span").remove();
       this.jboard.clear();
-      if (
-        this.exercise.content.indexOf("找出") == -1 &&
-        !this.begin &&
-        this.exercise.content.indexOf("选择") == -1
-      ) {
+      if (this.exercise.content.indexOf("找出") == -1 && !this.begin && this.exercise.content.indexOf("选择") == -1) {
         if (this.current_player == 1) {
           this.$refs.audio1.play();
         } else {
@@ -249,7 +233,7 @@ export default {
       this.exercise = this.exercises[this.index - 1];
       let rightStones = this.exercise.right_stones.split(";");
       if (this.exercise.exist_stones != "无") {
-        this.existRecords = this.exercise.exist_stones.split(";");
+        this.exist_records = this.exercise.exist_stones.split(";");
         this.put_exist_stones();
       }
       if (this.exercise.content.indexOf("选择") != -1) {
@@ -329,10 +313,7 @@ export default {
         }
         that.lastHover = false;
         let coordStr = Util.coordTostr(coord, Util.get_cols(19));
-        if (
-          that.exercise.content.indexOf("找出") != -1 ||
-          that.exercise.content.indexOf("选择") != -1
-        ) {
+        if (that.exercise.content.indexOf("找出") != -1 || that.exercise.content.indexOf("选择") != -1) {
           if (that.person_records.indexOf(coordStr) != -1) {
             return;
           }
@@ -530,9 +511,7 @@ body {
   margin: 0;
   overflow: hidden;
 }
-.back:hover {
-  cursor: pointer;
-}
+
 .exerciseArea {
   display: flex;
   flex-direction: row;

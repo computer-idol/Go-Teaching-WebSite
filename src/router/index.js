@@ -9,8 +9,9 @@ import DetailExerise from "@/components/exercise/detailexercise";
 import Play from "@/components/play/play";
 import playUserRoom from "@/components/play/playUserRoom";
 import playAIRoom from "@/components/play/playAIRoom";
-import Evalution from "@/components/evalution/evalution";
-import Home from "@/components/home";
+import Evaluation from "@/components/evaluation/evaluation";
+import EvaluationDetail from '@/components/evaluation/evaluationDetail'
+import Login from "@/components/login";
 import test from "@/components/test/test";
 import test1 from "@/components/test/test1";
 import test2 from "@/components/test/test2";
@@ -25,7 +26,11 @@ export default new Router({
   routes: [
     {
       path: "/",
-      component: Home,
+      component: Login,
+    },
+    {
+      path: "/login",
+      component: Login,
     },
     {
       path: "/index",
@@ -73,8 +78,12 @@ export default new Router({
       component: DetailExerise,
     },
     {
-      path: "/evalution",
-      component: Evalution,
+      path: "/evaluation",
+      component: Evaluation,
+    },
+    {
+      path: "/evaluation/detail/:recordid",
+      component: EvaluationDetail,
     },
     {
       path: "/test",

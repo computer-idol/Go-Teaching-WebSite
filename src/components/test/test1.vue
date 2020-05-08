@@ -2,7 +2,7 @@
   <div class="test1">
     <div class="main">
       <UserLink :user="user" :linkList="linkList" class="userlink"></UserLink>
-      <PlayTable :playData="playData" class="playList"></PlayTable>
+
     </div>
     <img src="../../../static/imgs/button/close.png" class="cursor_pointer close_table" @click="if_show_user=false" :class="{ closeActive: if_show_user, closeNegative: !if_show_user }">
     <UserTable :userData="userData" :user="user" :class="{ active: if_show_user, close: !if_show_user }" @invite_dialog="invite"></UserTable>
@@ -11,6 +11,12 @@
                  v-if="ifsetup" :request="user" :if_AI="0"></PlayRequest>
     <ReceiveRequest :play="play" v-if="if_receive" @resfuse="refuse" @agree="agree"></ReceiveRequest>
     <WaitResponse :response="response" v-if="if_show_wait" @cancel="cancel"></WaitResponse>
+    <EvalutionCard :evalution="evalution" style="position: fixed;top:200px;left:100px"></EvalutionCard>
+    <EvalutionRecord :recordList="recordList" :header="header" v-if="show_record"
+                     :pass="evalution.pass" :lose="evalution.lose" style="position: fixed;top:200px;left:400px">
+    </EvalutionRecord>
+    <img src="../../../static/imgs/button/close.png" class="cursor_pointer close_record"
+         @click="show_record=false" :class="{ closeActive: show_record, closeNegative: !show_record}">
   </div>
 </template>
 
@@ -23,10 +29,12 @@
   import PlayRequest from "../../components/tools/play/request/PlayRequest"
   import ReceiveRequest from "../../components/tools/play/request/ReceiveRequest"
   import WaitResponse from "../tools/play/request/WaitResponse"
+  import EvalutionCard from "../tools/evaluation/EvaluationCard"
+  import EvalutionRecord from "../tools/evaluation/EvaluationRecord"
   export default {
     name: '',
     components:{
-      PlayTable,UserTable,UserLink,PlayBottom,PlayRequest,ReceiveRequest,WaitResponse
+      PlayTable,UserTable,UserLink,PlayBottom,PlayRequest,ReceiveRequest,WaitResponse,EvalutionCard,EvalutionRecord
     },
     data(){
       return{
@@ -51,7 +59,19 @@
         ifsetup: false,
         play:{},
         if_receive:false,
-        if_show_wait:false
+        if_show_wait:false,
+        evalution:{
+          level:"9k",
+          pass:0,
+          lose:0,
+          knowledgeList:"认识棋盘,数气基础",
+        },
+        header:"9k测试记录",
+        recordList:[
+          {recordid:1,recordTime:"5分钟前",ifPass:1,wrongIDList:"1,2,3,4",wrongKnowledgeList:"认识棋盘,数气基础"},
+          {recordid:1,recordTime:"5分钟前",ifPass:1,wrongIDList:"1,2,3,4",wrongKnowledgeList:"认识棋盘,数气基础"}
+        ],
+        show_record:true
       }
     },
     created(){
@@ -198,4 +218,14 @@
   .closeNegative{
     animation: close-negative 0.3s normal forwards;
   }
+
+  .close_record{
+    position: fixed;
+    left: 880px;
+    top: 160px;
+    width: 50px;
+  }
+
+
+
 </style>
