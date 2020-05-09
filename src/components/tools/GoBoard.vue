@@ -394,7 +394,7 @@ export default {
       }
       room.Compute(json).then(res=>{
         console.log(res.data);
-        let pos = this.arrTrans(19,res.data.data.pos);
+        let pos = Util.arrTrans(19,res.data.data.pos);
         console.log(pos);
         for (let i = 0; i < pos.length; i++) {
           for (let j = 0; j < pos.length; j++) {
@@ -412,11 +412,13 @@ export default {
             }
           }
         }
-        this.$emit("conduct",pos)
+        this.$emit("conduct",pos);
       }).catch(e =>{
         console.log(e)
       })
     },
+
+
   }
 };
 </script>

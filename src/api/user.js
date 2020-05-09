@@ -9,14 +9,10 @@ const register = function(params) {
   return request(base.baseUrl + base.api.User.Register,params)
 }
 
-const getUserList = function(){
-  return request(base.baseUrl + base.api.User.UserList,"user")
-}
-
-const getAIList = function(){
-  return request(base.baseUrl + base.api.User.UserList,"AI")
+const getUserList = function(params){
+  return request(base.baseUrl + base.api.User.UserList,params)
 }
 
 export default{
-  login,register,getUserList,getAIList
+  login,register,getUserList
 }

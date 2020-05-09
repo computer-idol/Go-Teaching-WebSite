@@ -2,8 +2,7 @@ const api = {
   User: {
     Login: "/user/login",
     Register: "/user/register",
-    UserList: "/user/list/user",
-    AIList: "/user/list/AI",
+    UserList: "/user/list",
   },
   Study:{
     DifficultyList:"/study/difficulty/list",

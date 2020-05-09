@@ -41,7 +41,9 @@ export default {
       this.request= this.user;
       this.initwebsocket();
     }
-    UserRequest.getAIList().then((res) => {
+    let params = new URLSearchParams();
+    params.append("type",'"AI"')
+    UserRequest.getUserList(params).then((res) => {
       that.agents = res.data;
     }).catch(function (e) {
       console.log(e);
@@ -162,7 +164,7 @@ body {
 }
 
 .userlink{
-  height: 500px;
+  height: 450px;
 }
 
 .agent_choice {

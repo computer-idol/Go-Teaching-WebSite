@@ -338,10 +338,15 @@
           cache:false,
           is_back:false
         }
+        let that = this;
         room.Compute(json).then(res=>{
           console.log(res.data);
+          if(res.data.code==5){
+            that.open_tip("服务器繁忙，请稍后再试");
+            return;
+          }
           let pos = Util.arrTrans(19,res.data.data.pos);
-          let board = this.board.notifier.board;
+          let board = that.board.jboard;
           console.log(pos);
           for (let i = 0; i < pos.length; i++) {
             for (let j = 0; j < pos.length; j++) {
@@ -352,7 +357,7 @@
                   board.setMark(coord, window.JGO.MARK.WHITE_TERRITORY);
                 }
               } else if (pos[i][j]>0) {
-                if(board.stones[i][j]==1) continue;
+                if(this.board.stones[i][j]==1) continue;
                 else {
                   board.setMark(coord, window.JGO.MARK.BLACK_TERRITORY);
                 }

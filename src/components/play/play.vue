@@ -102,7 +102,7 @@ export default {
     },
     open_user(index){
       console.log(index)
-      if(index==2) {
+      if(index==1) {
         this.if_show_user = true;
       }
       else if(index==0){

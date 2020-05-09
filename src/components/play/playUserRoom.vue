@@ -1,7 +1,8 @@
 <template>
   <div class="playRoom">
     <Back :href="'/play'" class="cursor_pointer"/>
-    <Board :game="game" ref="goBoard" @init="init_board" @play="played" @compute="compute_result" class="board"></Board>
+    <Board :game="game" ref="goBoard" @init="init_board" @play="played" @compute="compute_result"
+           @conduct="get_result" class="board"></Board>
     <img class="begin-img" :src="begin_img" v-if="game.me_player != 3 && if_show_begin"/>
     <div class="playRoom-right">
       <PlayGuys :black="black" :white="white" :gameRuleList="gameRuleList"></PlayGuys>
@@ -179,7 +180,8 @@ export default {
       compute:{},
       canvas_created:false,
       gameRuleList:[],
-      play:{}
+      play:{},
+      if_agree_conduct:false,
     };
   },
   methods: {
@@ -314,16 +316,16 @@ export default {
       } else if(message.type=="request_conduct"){
         let other = this.black.userid==this.user.userid?this.white:this.black;
         this.open_tip(other.name+"发起数子申请，是否同意","同意","拒绝","agree_requestConduct","refuse_requestConduct");
-      }else if(message.type=="cancel_conduct"){
-        this.close_tip();
       }else if(message.type=="agree_conduct"){
-
+        this.apply_compute();
       }else if(message.type=="refuse_conduct"){
-
+        this.open_tip("对方不同意进行数子");
       }else if(message.type=="refuse_result"){
-
+        this.close_tip();
+        this.open_tip("对方不同意数子结果");
       }else if(message.type=="agree_result"){
-
+        this.close_tip();
+        this.end();
       }
     },
 
@@ -637,10 +639,6 @@ export default {
       this.if_show_compute_result = false;
     },
 
-    apply_compute(){
-
-    },
-
     white_over(){
       //判断是否有读秒
       if (this.white.otherTimes > 0) {
@@ -725,7 +723,7 @@ export default {
       let message = {
         type: "request_conduct",
       };
-      this.socket1.send(message);
+      this.socket1.send(JSON.stringify(message));
       this.close_tip();
     },
 
@@ -761,7 +759,7 @@ export default {
       let message = {
         type: "cancel_conduct",
       };
-      this.socket1.send(message);
+      this.socket1.send(JSON.parse(message));
       this.close_tip();
     },
 
@@ -770,8 +768,9 @@ export default {
       let message = {
         type: "agree_conduct",
       };
-      this.socket1.send(message);
+      this.socket1.send(JSON.stringify(message));
       this.close_tip();
+      this.apply_compute();
     },
 
     //拒绝数子申请
@@ -779,16 +778,51 @@ export default {
       let message = {
         type: "refuse_conduct",
       };
-      this.socket1.send(message);
+      this.socket1.send(JSON.stringify(message));
       this.close_tip();
+    },
+
+    //进行数子
+    apply_compute(){
+      let record = {
+        game: this.game,
+        black: this.black,
+        white: this.white,
+        roomid: this.roomid,
+      };
+      let sgf = Util.record_to_sgf(record);
+      this.$refs.goBoard.conduct(sgf)
+    },
+
+    //数子结果
+    get_result(pos){
+      let white_num = pos.fliter(item =>{
+        return item<0
+      }).length;
+      let komi = this.game.komi;
+      const diff = komi>0?(white_num-176.5):(white_num-181);
+      if(diff>0){
+        this.game_message.result = {
+          winner:2,
+          content:"白胜"+diff+"目"
+        }
+      }
+      else if(diff<0){
+        this.game_message.result = {
+          winner:1,
+          content:"黑胜"+diff+"目"
+        }
+      }
+      this.open_tip(this.game_message.result.content,"同意","不同意","agree_result","refuse_result");
     },
 
     //同意数子结果
     agree_conduct(){
+      this.if_agree_conduct = true;
       let message = {
         type: "agree_result"
       };
-      this.socket1.send(message);
+      this.socket1.send(JSON.stringify(message));
       this.close_tip();
     },
 
@@ -797,7 +831,7 @@ export default {
       let message = {
         type: "refuse_result"
       };
-      this.socket1.send(message);
+      this.socket1.send(JSON.stringify(message));
       this.close_tip();
     }
   },
