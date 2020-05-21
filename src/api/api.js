@@ -3,6 +3,9 @@ const api = {
     Login: "/user/login",
     Register: "/user/register",
     UserList: "/user/list",
+    UserWrongList:"/user/wrong/list",
+    UserRoomList:"/user/room/list",
+    UserEvaluationList:"/user/record/list"
   },
   Study:{
     DifficultyList:"/study/difficulty/list",
@@ -14,23 +17,22 @@ const api = {
     EvaluationList:"/evaluation/list",
     EvaluationCreate:"/evaluation/create",
     EvaluationEnd:"/evaluation/end",
-    EvaluationRecord:"/evaluation/record",
     WatchEvaluation:"/evaluation/watch"
   },
   Exercise:{
     ExerciseTypeList:"/exercise/type/list",
-    ExerciseSubTypeLevelList:"/exercise/subType/list"
+    ExerciseSubTypeLevelList:"/exercise/subType/list",
+    AddWrong:"/exercise/wrong/add",
+    RemoveWrong:"/exercise/wrong/remove",
   },
   Play:{
     PlayRoomDetail:"/play/room/detail",
     PlayRoomList:"/play/room/list",
-    PlayUserRoomList:"/play/room/user/list",
     GetAIMove:"/select-move",
-
   },
   Manual:{
     AddPlayer:"/manual/player/add",
-    PlayerCountryList:"/manual/player/country/list",
+    PlayerCountryList:"/manual/player/list",
     ManualDetail:"/manual/detail",
     ManualList:"/manual/list"
   }

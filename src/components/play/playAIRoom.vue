@@ -375,78 +375,82 @@
         params.append("roomid", that.roomid);
         // 请求房间信息
         PlayRoomRequest.getRoomDetail(params).then((res) => {
-          let room = res.data.room;
-          if (room.state == "已结束") {
-            let path = "/play/room/manual/" + room.roomid;
+          if (res.code == 200) {
+            let room = res.obj;
+            if (room.state == "已结束") {
+              let path = "/play/room/manual/" + room.roomid;
+              that.$router.push({path: path});
+              return false;
+            }
+            //得出当前用户情况
+            let blackUser = room.black_player;
+            let whiteUser = room.white_player;
+            if (blackUser.name == that.user.name)
+              that.game.me_player = 1;
+            else if (whiteUser.name == that.user.name)
+              that.game.me_player = 2;
+            else
+              that.game.me_player = 3;
+
+            if (blackUser.type == "AI") {
+              that.game.AI_player = 1;
+            } else {
+              that.game.AI_player = 2;
+            }
+
+            // 根据让子情况判断第一步该由谁下,默认黑下
+            if (room.handicap != "分先") {
+              that.game.komi = 0;
+              if (room.handicap == "让先")
+                that.game_message.komisituation = "让先不贴目";
+              else {
+                that.game.handicap = parseInt(room.handicap.replace(/[^0-9]/gi, ""));
+                that.game.komisituation = "白让" + room.handicap.replace(/[^0-9]/gi, "") + "子不贴目";
+                that.game.current_player = 2;
+                that.game.first_player = 2;
+              }
+            } else {
+              this.game.current_player = 1;
+              this.game.first_player = 1;
+              this.game.komi = 6.5;
+              that.game_message.komisituation = "黑贴6.5目"
+            }
+
+            that.game.board_size = parseInt(room.board_type);
+            that.game_message.basicMinutes = parseInt(room.basicTime);
+            that.game_message.otherPerTime = parseInt(room.otherPerTime);
+            that.game_message.otherTimes = parseInt(room.otherTimes);
+            that.game_message.time = room.time;
+            that.$refs.goBoard.create_board();
+
+            document.title = this.roomid + "号房间 " + blackUser.name + "(" + blackUser.level + ")VS" +
+              whiteUser.name + "(" + whiteUser.level + ")";
+
+            // 初始化黑方
+            that.black.name = blackUser.name;
+            that.black.level = blackUser.level;
+            that.black.photo = blackUser.photo;
+            that.black.otherTimes = that.game_message.otherTimes;
+            that.black.time_total = 60 * that.game_message.basicMinutes;
+
+            // 初始化白方
+            that.white.name = whiteUser.name;
+            that.white.level = whiteUser.level;
+            that.white.photo = whiteUser.photo;
+            that.white.otherTimes = that.game_message.otherTimes;
+            that.white.time_total = 60 * that.game_message.basicMinutes;
+
+            that.$refs.black_timer.show();
+            that.$refs.white_timer.show();
+
+            that.initwebsocket();
+          }
+          else{
+            let path = "/play";
             that.$router.push({ path: path });
             return false;
           }
-          //得出当前用户情况
-          let blackUser = room.black_player;
-          let whiteUser = room.white_player;
-          if (blackUser.name == that.user.name)
-            that.game.me_player = 1;
-          else if (whiteUser.name == that.user.name)
-            that.game.me_player = 2;
-          else
-            that.game.me_player = 3;
-
-          if(blackUser.type=="AI"){
-            that.game.AI_player = 1;
-          }
-          else{
-            that.game.AI_player = 2;
-          }
-
-          // 根据让子情况判断第一步该由谁下,默认黑下
-          if (room.handicap != "分先") {
-            that.game.komi = 0;
-            if (room.handicap == "让先")
-              that.game_message.komisituation = "让先不贴目";
-            else {
-              that.game.handicap = parseInt(room.handicap.replace(/[^0-9]/gi, ""));
-              that.game.komisituation = "白让" + room.handicap.replace(/[^0-9]/gi, "") + "子不贴目";
-              that.game.current_player = 2;
-              that.game.first_player = 2;
-            }
-          }
-          else{
-            this.game.current_player = 1;
-            this.game.first_player = 1;
-            this.game.komi = 6.5;
-            that.game_message.komisituation = "黑贴6.5目"
-          }
-
-          that.game.board_size = parseInt(room.board_type);
-          that.game_message.basicMinutes = parseInt(room.basicTime);
-          that.game_message.otherPerTime = parseInt(room.otherPerTime);
-          that.game_message.otherTimes = parseInt(room.otherTimes);
-          that.game_message.time = room.time;
-          that.$refs.goBoard.create_board();
-
-          document.title = this.roomid + "号房间 " + blackUser.name + "(" + blackUser.level + ")VS" +
-            whiteUser.name + "(" + whiteUser.level + ")";
-
-          // 初始化黑方
-          that.black.name = blackUser.name;
-          that.black.level = blackUser.level;
-          that.black.photo = blackUser.photo;
-          that.black.otherTimes = that.game_message.otherTimes;
-          that.black.time_total = 60 * that.game_message.basicMinutes;
-
-          // 初始化白方
-          that.white.name = whiteUser.name;
-          that.white.level = whiteUser.level;
-          that.white.photo = whiteUser.photo;
-          that.white.otherTimes = that.game_message.otherTimes;
-          that.white.time_total = 60 * that.game_message.basicMinutes;
-
-          that.$refs.black_timer.show();
-          that.$refs.white_timer.show();
-
-          that.initwebsocket();
-        })
-          .catch(function (error) {
+        }).catch(function (error) {
             console.log(error);
             let path = "/play";
             that.$router.push({ path: path });

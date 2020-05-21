@@ -3,6 +3,8 @@
     <div id="board"></div>
     <audio src="../../../static/sound/play.wav" ref="audio1"></audio>
     <audio src="../../../static/sound/capture.wav" ref="audio2"></audio>
+    <Alert v-if="dialog.if_show_tip" :tip="dialog.tip" :btn1_text="dialog.btn1_text" :btn2_text="dialog.btn2_text"
+           @btn1_click="close_tip" @btn2_click="close_tip"></Alert>
   </div>
 </template>
 
@@ -12,9 +14,13 @@ import Util from "../../../static/js/util/util";
 import Compute from "../../../static/js/util/compute_winner";
 import sgfParser from "../../../static/js/util/sgf";
 import room from "../../api/room"
+import Alert from "./Alert"
 import $ from "jquery";
 export default {
   name: "board",
+  components:{
+    Alert
+  },
   props: {
     game: {
       type: Object,
@@ -32,7 +38,8 @@ export default {
         lastMove: false,
         lastHover: false,
         lastX: -1,
-        lastY: -1
+        lastY: -1,
+        terr:[]
       },
       record:{
         white_capture_num:0,
@@ -40,10 +47,25 @@ export default {
       },
       record_play: [], // 记录每次的落子情况
       situation:[],
-      put_type:""
+      put_type:"",
+      dialog: {
+        if_show_tip: false,
+        tip: "",
+        btn1_text: "确定",
+        btn2_text: "取消",
+      },
     }
   },
   methods: {
+    // 打开dialog
+    open_tip(tip) {
+      this.dialog.if_show_tip = true;
+      this.dialog.tip = tip;
+    },
+    close_tip() {
+      this.dialog.if_show_tip = false;
+      this.dialog.tip = "";
+    },
     /*
     创建棋盘
      */
@@ -192,10 +214,10 @@ export default {
           }
         }
         // 如果显示手数，先去掉死掉的序列
-        if (that.game.if_show_sequence&&!that.if_try) {
+        if ((that.game.if_show_sequence&&!that.game.if_try)||that.game.if_try) {
           that.removeSequenceSpan(play.captures);
           let canAppend = true;
-          let records = that.game.records;
+          let records = !that.game.if_try?that.game.records:that.game.variations;
           if (records.length > 0) {
             let coord = Util.strTocoord(records[records.length-1],Util.get_cols(that.game.board_size));
             for (let i = 0; i < play.captures.length; i++) {
@@ -212,7 +234,7 @@ export default {
         }
         node.setType(play.captures, window.JGO.CLEAR);
         node.setType(coord, that.game.current_player);
-        if (userPlay && !that.game.if_try) {
+        if (userPlay) {
           node.setMark(coord, window.JGO.MARK.CIRCLE);
         }
         if (that.board.lastMove) {
@@ -392,10 +414,16 @@ export default {
         cache:false,
         is_back:false
       }
+      let that = this;
       room.Compute(json).then(res=>{
         console.log(res.data);
+        if(res.data.code==5){
+          that.open_tip("服务器繁忙，请稍后再试");
+          return;
+        }
         let pos = Util.arrTrans(19,res.data.data.pos);
         console.log(pos);
+        let board = that.board.jboard;
         for (let i = 0; i < pos.length; i++) {
           for (let j = 0; j < pos.length; j++) {
             let coord = new window.JGO.Coordinate(i, j);
@@ -403,11 +431,13 @@ export default {
               if(board.stones[i][j]==2) continue;
               else {
                 board.setMark(coord, window.JGO.MARK.WHITE_TERRITORY);
+                this.board.terr.push(coord)
               }
             } else if (pos[i][j]>0) {
               if(board.stones[i][j]==1) continue;
               else {
                 board.setMark(coord, window.JGO.MARK.BLACK_TERRITORY);
+                this.board.terr.push(coord)
               }
             }
           }
@@ -418,7 +448,13 @@ export default {
       })
     },
 
-
+    /*关闭结果*/
+    close_result(){
+      let that = this;
+      this.board.terr.forEach(coord =>{
+        that.board.jboard.setMark(coord, window.JGO.MARK.NONE);
+      })
+    }
   }
 };
 </script>

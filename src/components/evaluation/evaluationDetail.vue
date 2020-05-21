@@ -54,7 +54,7 @@
   import Back from "../tools/Back"
   import Board from "../tools/GoBoard"
   import EvaluationRequest from "../../api/evaluation"
-  import exercise from '../../api/exercise'
+  import ExerciseRequest from '../../api/exercise'
   import Util from "../../../static/js/util/util"
   import Timer from "../tools/playSides/Timer"
   import EvaluationResult from "../tools/evaluation/EvaluationResult"
@@ -90,9 +90,7 @@
           {text:"对弈大厅",href:"/play",id:"link4"}
         ],
         index:1,
-        exercise:{
-          content:""
-        },
+        exercise:{},
         game: {
           board_size: 19,
           handicap: 0,
@@ -190,12 +188,11 @@
         let params = new URLSearchParams();
         params.append("recordid",that.recordid)
         EvaluationRequest.getEvaluationRecordDetail(params).then(res =>{
-          console.log(res.data);
-          if(res.data==""){
+          if(res.data.code==500){
             that.$router.push({path:"/404"})
             return false;
           }
-          that.evaluationRecord = res.data;
+          that.evaluationRecord = res.data.obj;
           if(that.evaluationRecord.state=="已做"){
             that.if_end = true;
             let wrongIDList = that.evaluationRecord.wrongIDList.split(",");
@@ -213,7 +210,7 @@
               }
             }
           }
-          document.title = res.data.evaluation.level+"评测"
+          document.title = res.data.obj.evaluation.level+"评测"
           that.exercise = that.evaluationRecord.exerciseList[0];
           that.index = 1;
           that.$nextTick(() =>{
@@ -290,11 +287,7 @@
               return;
             }
           } else {
-            this.if_begin = false;
-            this.$refs.audio3.play();
-            this.$refs.timer.stop()
-            this.result.answerList[this.index-1].result = "wrong";
-            this.index++;
+            this.show_wrong();
             return;
           }
         }
@@ -330,15 +323,35 @@
               return;
             }
           } else {
-            this.if_begin = false;
-            this.$refs.audio3.play();
-            this.$refs.timer.stop()
-            this.result.answerList[this.index-1].result = "wrong";
-            this.index++;
+            this.show_wrong()
             return;
           }
         }
       },
+
+      //提交错题
+      show_wrong(){
+        let that = this;
+        let canvas = document.getElementsByTagName("canvas")[0];
+        let baseStr = canvas.toDataURL("image/png")//错题截图
+        let exercise = that.evaluationRecord.exerciseList[that.index-1];
+        let params = new URLSearchParams();
+        params.append("userid",this.user.userid);
+        params.append("exerciseid",exercise.exerciseid);
+        params.append("imgCode","'"+baseStr+"'");
+        ExerciseRequest.AddWrong(params).then(res =>{
+          if(res.data.code==200) {
+            that.if_begin = false;
+            that.$refs.audio3.play();
+            that.$refs.timer.stop()
+            that.result.answerList[that.index - 1].result = "wrong";
+            that.index++;
+          }
+        }).catch(e =>{
+          console.log(e)
+        })
+      },
+
       init_message(){
         this.person_step=0;
         this.timeCount = 300;
@@ -364,7 +377,11 @@
         params.append("wrongIDList",wrongIDList);
         params.append("wrongKnowledgeList",wrongKnowledgeList);
         params.append("recordid",this.recordid);
-        EvaluationRequest.endEvaluation(params).then(res=>{}).catch(e =>{
+        EvaluationRequest.endEvaluation(params).then(res=>{
+          if(res.data.code==200){
+
+          }
+        }).catch(e =>{
             console.log(e);
         })
       },
@@ -383,7 +400,9 @@
           }
           setTimeout(()=>{},500);
         }
-      }
+      },
+
+
     }
   }
 </script>

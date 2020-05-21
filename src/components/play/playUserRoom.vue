@@ -300,8 +300,9 @@ export default {
         this.$refs.black_timer.stop();
         this.$refs.white_timer.stop();
         this.open_tip(message.content);
+        let that = this;
         setTimeout(function () {
-          this.$router.push({ path: "/play" });
+          that.$router.push({ path: "/play" });
         }, 3000);
       } else if (message.type == "request_newest") {
         let msg = {
@@ -388,8 +389,8 @@ export default {
       params.append("roomid", that.roomid);
       // 请求房间信息
       PlayRoomRequest.getRoomDetail(params).then((res) => {
-          let room = res.data.room;
-          that.play = room
+        if(res.code==200){
+          that.play = res.obj;
           if (room.state == "已结束") {
             let path = "/play/room/manual/" + room.roomid;
             that.$router.push({ path: path });
@@ -453,7 +454,13 @@ export default {
           that.$refs.white_timer.show();
 
           that.initwebsocket();
-        }).catch(function (error) {
+        }
+        else{
+          let path = "/play/room/manual/" + room.roomid;
+          that.$router.push({ path: path });
+          return false;
+        }
+      }).catch(function (error) {
           console.log(error);
           that.$router.push({ path: "/play" });
           return false;
@@ -710,6 +717,7 @@ export default {
     },
 
     goPlay(){
+      let path = "/play"
       this.$router.push({path:path});
     },
 
@@ -796,9 +804,16 @@ export default {
 
     //数子结果
     get_result(pos){
-      let white_num = pos.fliter(item =>{
-        return item<0
-      }).length;
+      console.log(pos);
+      let white_num=0;
+      for(let i=0;i<pos.length;i++){
+        for(let j=0;j<pos.length;j++){
+          if(pos[i][j]<0)
+            white_num++;
+        }
+      }
+      console.log(white_num);
+      this.game_message.result.content ="白"+white_num+"子"
       let komi = this.game.komi;
       const diff = komi>0?(white_num-176.5):(white_num-181);
       if(diff>0){
@@ -810,7 +825,7 @@ export default {
       else if(diff<0){
         this.game_message.result = {
           winner:1,
-          content:"黑胜"+diff+"目"
+          content:"黑胜"+(-diff)+"目"
         }
       }
       this.open_tip(this.game_message.result.content,"同意","不同意","agree_result","refuse_result");
@@ -833,6 +848,7 @@ export default {
       };
       this.socket1.send(JSON.stringify(message));
       this.close_tip();
+      this.$refs.goBoard.close_result();
     }
   },
 };

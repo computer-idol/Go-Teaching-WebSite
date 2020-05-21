@@ -121,8 +121,7 @@ export default {
       let params = new URLSearchParams();
       params.append("country", "'" + country + "'");
       ManualRequest.getPlayCountryList(params).then((res) => {
-        let nameList = res.data;
-        that.players = nameList;
+        that.players = res.obj;
         that.findList(that.players[0]);
       }).catch(function (e) {
         console.log(e);
@@ -147,9 +146,11 @@ export default {
       params.append("currentPage", this.tablePage.currentPage);
       params.append("pageSize", this.tablePage.pageSize);
       ManualRequest.getManualList(params).then((res) => {
-        that.tableData = res.data.manualList;
-        that.tablePage.totalResult = res.data.count;
-        that.loading = false;
+        if(res.data.code==200) {
+          that.tableData = res.data.obj;
+          that.tablePage.totalResult = res.data.obj.length;
+          that.loading = false;
+        }
       }).catch(function (e) {
         that.loading = false;
         console.log(e);

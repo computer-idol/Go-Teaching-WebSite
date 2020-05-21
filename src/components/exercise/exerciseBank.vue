@@ -143,12 +143,12 @@ export default {
       params.append("type", "'" + that.type + "'");
       params.append("level", "'" + that.level + "'");
       ExerciseRequest.getExerciseTypeList(params).then((res) => {
-        let exercisetypeList = res.data;
-        if (exercisetypeList.length == 0) {
+        if(res.data.code==500){
           that.open_tip("暂时没有这个级别题目");
-        } else {
+        }
+        else {
+          that.exerciseTypes = res.data.obj;
           that.if_set_level = true;
-          that.exerciseTypes = exercisetypeList;
         }
       }).catch(function (e) {
         console.log(e);

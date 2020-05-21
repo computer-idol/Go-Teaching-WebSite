@@ -13,7 +13,6 @@ function sort (data) {
     data1.push(play);
   }
   data1.sort(sortRule)
-  console.log(data1)
   return data1;
 }
 

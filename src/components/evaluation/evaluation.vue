@@ -49,6 +49,7 @@
   import EvaluationCard from "../tools/evaluation/EvaluationCard"
   import EvaluationRecord from "../tools/evaluation/EvaluationRecord"
   import EvaluationRequest from "../../api/evaluation"
+  import UserRequest from "../../api/user"
   export default {
     name: "goClass",
     components: {
@@ -63,8 +64,13 @@
       }
       let params = new URLSearchParams();
       EvaluationRequest.getEvaluationList(params).then(res =>{
-         that.evaluationList = res.data;
-         that.initEvaluationList();
+        if(res.data.code==200) {
+          that.evaluationList = res.data.obj;
+          that.initEvaluationList();
+        }
+        else{
+          that.open_tip("暂无评测");
+        }
       }).catch(e =>{
          console.log(e);
       })
@@ -164,9 +170,14 @@
         params.append("userid",this.user.userid);
         params.append("evaluationid",evaluationid);
         params.append("level",evaluation.level);
-        EvaluationRequest.getUserEvaluationList(params).then(res =>{
-          that.recordList = res.data;
-          that.if_showRecord = true;
+        UserRequest.getUserEvaluationList(params).then(res =>{
+          if(res.data.code==200) {
+            that.recordList = res.data.obj;
+            that.if_showRecord = true;
+          }
+          else{
+            that.open_tip("尚无评测记录");
+          }
         }).catch(e =>{
           console.log(e)
         })
@@ -179,12 +190,12 @@
         params.append("evaluationid",evaluation.evaluationid);
         params.append("level",evaluation.level);
         EvaluationRequest.createEvaluation(params).then(res =>{
-          if(res.data!=""){
-            let path = "/evaluation/detail/"+res.data.recordid;
+          if(res.data.code==200){
+            let path = "/evaluation/detail/"+res.data.obj.recordid;
             this.$router.push({path:path});
           }
           else{
-            that.open_tip("当前题目不足");
+            that.open_tip("该等级评测题目不足");
           }
         }).catch(e =>{
           console.log(e)

@@ -141,20 +141,23 @@ export default {
       this.dialog.if_show_tip = false;
       this.dialog.tip = "";
     },
+
+
     goDifficulty(difficultid) {
       let that = this;
       let params = new URLSearchParams();
       params.append("difficultid", difficultid);
       StudyRequest.getChapterList(params).then((res) => {
-          let chapterList = res.data;
-          if (chapterList.length == 0) {
-            that.open_tip("暂时没有这个难度的教程");
-          } else {
-            that.if_set_difficulty = true;
-            that.chapterList = chapterList;
-            that.page = 1;
-            that.initChapter();
-          }
+        if(res.data.code==200) {
+          that.chapterList = res.data.obj;
+          that.if_set_difficulty = true;
+          that.chapterList = chapterList;
+          that.page = 1;
+          that.initChapter();
+        }
+        else{
+          that.open_tip("没有这个难度的课程");
+        }
         }).catch(function (error) {
           console.log(error);
         });
@@ -236,8 +239,8 @@ export default {
       params.append("evaluationid",levels.indexOf(this.user.level)+1);
       params.append("level",this.user.level);
       EvaluationRequest.createEvaluation(params).then(res =>{
-        if(res.data!=""){
-          let path = "/evaluation/detail/"+res.data.recordid;
+        if(res.data.code==200){
+          let path = "/evaluation/detail/"+res.data.obj.recordid;
           this.$router.push({path:path});
         }
         else{

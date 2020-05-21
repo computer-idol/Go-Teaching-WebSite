@@ -26,8 +26,13 @@ export default {
     let params = new URLSearchParams();
     params.append("manualid", that.manualid);
     ManualRequest.getManualDetail(params).then((res) => {
-      let sgf = res.data.sgf;
-      that.$refs.manualLayout.init(sgf);
+      if(res.data.code==200) {
+        let sgf = res.data.obj;
+        that.$refs.manualLayout.init(sgf);
+      }
+      else{
+
+      }
     }).catch(function (e) {
       console.log(e);
     });

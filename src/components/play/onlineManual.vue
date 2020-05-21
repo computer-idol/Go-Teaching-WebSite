@@ -26,8 +26,11 @@ export default {
     let params = new URLSearchParams();
     params.append("roomid", this.roomid);
     PlayRoomRequest.getRoomDetail(params).then((res) => {
-      let sgf = res.data.room.record;
-      that.$refs.manualLayout.init(sgf);
+      if(res.data.code==200) {
+        let sgf = res.data.obj.record;
+        that.$refs.manualLayout.init(sgf);
+      }
+
     }).catch(function (e) {
       console.log(e);
     });

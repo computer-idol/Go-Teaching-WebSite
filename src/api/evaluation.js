@@ -13,15 +13,11 @@ const  endEvaluation = function(params){
   return request(base.baseUrl + base.api.Evaluation.EvaluationEnd,params)
 }
 
-const  getUserEvaluationList= function(params){
-  return request(base.baseUrl + base.api.Evaluation.EvaluationRecord,params)
-}
-
 const  getEvaluationRecordDetail= function(params){
   return request(base.baseUrl + base.api.Evaluation.WatchEvaluation,params)
 }
 
 
 export default{
-  getEvaluationList,createEvaluation,endEvaluation,getUserEvaluationList,getEvaluationRecordDetail
+  getEvaluationList,createEvaluation,endEvaluation,getEvaluationRecordDetail
 }

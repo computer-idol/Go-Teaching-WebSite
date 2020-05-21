@@ -33,7 +33,7 @@
               <input type="text" v-model="reg_params.account" placeholder="请输入帐号"/>
               <input type="password" v-model="reg_params.password" style="margin-top: 10px;" placeholder="请输入密码"/>
               <select v-model="reg_params.level" placeholder="请选择你的级别" class="select">
-                <option value="level" label="level" v-for="level in levels" :key="level"></option>
+                <option :value="level" :label="level" v-for="level in levels" :key="level"></option>
               </select>
             </div>
             <div class="btn">
@@ -103,46 +103,53 @@ export default {
       } else if (this.login_params.password == "") {
         this.open_tip("密码不能为空");
       } else {
-        let that = this;
         let params = new URLSearchParams();
         params.append("account", this.login_params.account);
         params.append("password", this.login_params.password);
-        UserRequest.login(params).then((res) => {
-          if (res.data.user != null) {
-            sessionStorage.setItem("user", JSON.stringify(res.data.user));
-            sessionStorage.setItem("levelScoreList",JSON.stringify(res.data.levelScoreList))
-            that.$router.push({ path: "/index" });
+        UserRequest.login(params).then(res => {
+          if (res.data.code==200) {
+            sessionStorage.setItem("user", JSON.stringify(res.data.obj.user));
+            sessionStorage.setItem("levelScoreList",JSON.stringify(res.data.obj.levelScoreList))
+            this.$router.push('/home').catch(err => {
+              console.log(err)
+            })
           } else {
-            that.open_tip("帐号密码错误");
+            this.open_tip(res.msg);
           }
-        }).catch(function (e) {
+        }).catch(e=>{
           console.log(e)
-          that.open_tip("登录失败");
+          this.open_tip("登录失败");
         });
       }
     },
 
     // 注册
     register() {
-      if (this.login_params.name == "") {
+      if (this.reg_params.name == "") {
         this.open_tip("注册昵称不能为空");
         return;
       }
-      if (this.login_params.account == "") {
+      if (this.reg_params.account == "") {
         this.open_tip("注册帐号不能为空");
-      } else if (this.login_params.password == "") {
+      } else if (this.reg_params.password == "") {
         this.open_tip("注册密码不能为空");
       } else {
-        let that = this;
         let params = new URLSearchParams();
         params.append("account", this.reg_params.account);
         params.append("password", this.reg_params.password);
         params.append("name", this.reg_params.name);
         params.append("level", this.reg_params.level);
-        UserRequest.register.then((res) => {
-          that.open_tip("注册成功，请去登录")
-        }).catch(function (error) {
-            that.open_tip("注册失败");
+        UserRequest.register(params).then(res => {
+          if(res.data.code==200) {
+            this.open_tip("注册成功，请去登录")
+            this.iflogin = true;
+          }
+          else{
+            this.open_tip(res.data.msg);
+          }
+        }).catch(e=>{
+          console.log(e)
+          this.open_tip("注册失败");
         });
       }
     },

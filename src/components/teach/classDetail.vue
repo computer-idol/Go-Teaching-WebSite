@@ -185,13 +185,15 @@ export default {
       let params = new URLSearchParams();
       params.append("chapterid", this.chapterid);
       StudyRequest.getClassList(params).then((res) => {
-          that.classList = res.data.classList;
-          that.chapter = res.data.chapter;
-          document.title = that.chapter.chapterName;
-          that.active_index = 0;
-          that.page = 1;
-          that.initpageClass();
-          that.getClass();
+          if(res.data.code==200) {
+            that.classList = res.data.obj;
+            that.chapter = that.classList[0].chapter;
+            document.title = that.chapter.chapterName;
+            that.active_index = 0;
+            that.page = 1;
+            that.initpageClass();
+            that.getClass();
+          }
         }).catch(function (error) {
           console.log(error);
         });
@@ -221,9 +223,11 @@ export default {
       params.append("chapterid", this.chapterid);
       let that = this;
       StudyRequest.getTeachStepList(params).then((res) => {
-          that.teachStepList = res.data;
+        if(res.data.code==200) {
+          that.teachStepList = res.data.obj;
           that.step = 0;
           that.if_begin = false;
+        }
       }).catch(function (error) {
           console.log(error);
       });
@@ -310,7 +314,6 @@ export default {
         this.variation_first = this.current_player;
       }
       if (interactiveStyle == 2) {
-        console.log("xx");
         let choices = teachStep.choices;
         this.choices = choices.split(";");
         this.question = teachStep.stepcontent;

@@ -14,7 +14,7 @@
       </div>
     </div>
     <div class="main">
-      <div class="type">
+      <div class="type" v-if="!show_wrong">
         <div class="line1">
           <div class="study" @click="$router.push({ path:'/study'})">
             学习
@@ -38,7 +38,7 @@
         <a href="javascript:" style="margin-left: 30px;" @click="if_show_myManual = !if_show_myManual">
           <img src="../../static/imgs/link/myManuals.png" />
         </a>
-        <a href="/myWrong">
+        <a href="javascript:" @click="show_wrong=true">
           <img src="../../static/imgs/link/wrong.png" />
         </a>
         <a href="/myCollections">
@@ -52,16 +52,25 @@
     <UserCard :user="user" :levelScore="levelScore" v-if="if_show_user" @watch="watch" @record="record"></UserCard>
     <img src="../../static/imgs/button/close.png" @click="if_show_user = false" v-if="if_show_user"
          style="width: 30px; height: 30px; position: fixed;left: 62%;top: 190px;z-index: 1000;" class="cursor_pointer"/>
+    <myWrong :wrongList="wrongList" @doWrong="doWrong" v-if="show_wrong" class="wrong"></myWrong>
+    <img src="../../static/imgs/button/close.png" @click="show_wrong = false" v-if="show_wrong"
+         style="width: 50px; height: 50px; position: fixed;left: 950px;top: 70px;z-index: 1200;" class="cursor_pointer"/>
+
+    <Alert v-if="dialog.if_show_tip" :tip="dialog.tip" :btn1_text="dialog.btn1_text" :btn2_text="dialog.btn2_text"
+           @btn1_click="close_tip" @btn2_click="close_tip"
+    ></Alert>
   </div>
 </template>
 
 <script>
 import myManuals from "./tools/user/myManuals"
-import RoomRequest from "../api/room"
+import UserRequest from "../api/user"
 import UserCard from "./tools/user/UserCard"
+import myWrong from "./tools/user/myWrong"
+import Alert from "./tools/Alert";
 export default {
   components:{
-    myManuals,UserCard
+    myManuals,UserCard,myWrong,Alert
   },
   created() {
     document.title = "首页";
@@ -72,8 +81,18 @@ export default {
     let that = this;
     let params = new URLSearchParams();
     params.append("userid",this.user.userid);
-    RoomRequest.getPlayUserRoomList(params).then(res =>{
-      that.playData = res.data;
+    UserRequest.getUserRoomList(params).then(res =>{
+      that.playData = res.data.obj;
+    }).catch(e =>{
+      console.log(e)
+    });
+    let wrongParams = new URLSearchParams();
+    wrongParams.append("userid",1);
+    wrongParams.append("deleted",0);
+    UserRequest.UserWrongList(wrongParams).then(res =>{
+      if(res.data.code==200) {
+        that.wrongList = res.data.obj;
+      }
     }).catch(e =>{
       console.log(e)
     });
@@ -82,12 +101,29 @@ export default {
     return {
       user: {},
       playData:[],
+      wrongList:[],
       if_show_myManual:false,
       levelScore:0,
-      if_show_user:false
+      if_show_user:false,
+      show_wrong:false,
+      dialog: {
+        if_show_tip: false,
+        tip: "",
+        btn1_text: "确定",
+        btn2_text: "取消",
+      },
     };
   },
   methods: {
+    // 打开dialog
+    open_tip(tip) {
+      this.dialog.if_show_tip = true;
+      this.dialog.tip = tip;
+    },
+    close_tip() {
+      this.dialog.if_show_tip = false;
+      this.dialog.tip = "";
+    },
     show_user(){
        let levelScoreList = JSON.parse(sessionStorage.getItem("levelScoreList"));
        let user = this.user;
@@ -111,11 +147,12 @@ export default {
        this.user.playList = this.playData.slice(0,num);
        this.if_show_user = true
     },
-    watch(){
-      this.if_show_myManual = true;
-    },
+
     record(){
 
+    },
+    doWrong(string){
+      this.open_tip(string);
     }
   }
 };
@@ -338,10 +375,14 @@ body {
   transform: translateY(-10px);
 }
 
-.playList {
+.playList,.wrong {
   position: fixed;
-  left: 15%;
+  left: 370px;
   top: 100px;
   z-index: 1000;
+}
+
+.playList{
+  left: 200px;
 }
 </style>

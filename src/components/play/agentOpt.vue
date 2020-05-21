@@ -44,7 +44,9 @@ export default {
     let params = new URLSearchParams();
     params.append("type",'"AI"')
     UserRequest.getUserList(params).then((res) => {
-      that.agents = res.data;
+      if(res.data.code==200) {
+        that.agents = res.data.obj;
+      }
     }).catch(function (e) {
       console.log(e);
     });

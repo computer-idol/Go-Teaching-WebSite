@@ -15,14 +15,16 @@ import Login from "@/components/login";
 import test from "@/components/test/test";
 import test1 from "@/components/test/test1";
 import test2 from "@/components/test/test2";
+import test3 from "@/components/test/test3";
 import selfPlay from "@/components/test/selfPlay";
 import onlineManual from "@/components/play/onlineManual";
 import agentOpt from "@/components/play/agentOpt";
 import classDetail from "@/components/teach/classDetail";
 import NotFound from "@/components/tools/NotFound";
+import doWrong from "@/components/doWrong"
 Vue.use(Router);
 
-export default new Router({
+const router = new Router({
   routes: [
     {
       path: "/",
@@ -33,7 +35,7 @@ export default new Router({
       component: Login,
     },
     {
-      path: "/index",
+      path: "/home",
       component: Index,
     },
     {
@@ -98,6 +100,10 @@ export default new Router({
       component: test2,
     },
     {
+      path: "/test3",
+      component: test3,
+    },
+    {
       path: "/selfPlay",
       component: selfPlay,
     },
@@ -106,9 +112,32 @@ export default new Router({
       component: agentOpt,
     },
     {
+      path:"/user/doWrong",
+      component:doWrong
+    },
+    {
       path:"*",
       component:NotFound,
     }
   ],
   mode: "history",
 });
+
+
+// 导航守卫
+// 使用 router.beforeEach 注册一个全局前置守卫，判断用户是否登陆
+router.beforeEach((to, from, next) => {
+  if (to.path === '/login') {
+    next();
+  } else {
+    let user = sessionStorage.getItem('user');
+    if (user == null) {
+      next('/login');
+    } else {
+      next();
+    }
+  }
+});
+
+
+export default router

@@ -101,7 +101,6 @@ export default {
       this.dialog.tip = "";
     },
     open_user(index){
-      console.log(index)
       if(index==1) {
         this.if_show_user = true;
       }

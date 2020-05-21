@@ -4,7 +4,7 @@
       <div class="header">
         <span class="left">第{{sequence}}级</span>
         <span class="right">
-          <a @click="showRecord">测试记录</a>
+          <a @click.stop="showRecord">测试记录</a>
         </span>
       </div>
       <div class="main">
